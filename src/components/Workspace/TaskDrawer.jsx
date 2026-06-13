@@ -12,6 +12,7 @@ import useAuthStore from '../../store/useAuthStore'
 import { toast } from 'sonner'
 import CallModal from './CallModal'
 import FlowchartEditor from './FlowchartEditor'
+import { useJourneyRole, canEdit, canUpload } from '../../lib/useJourneyRole'
 
 // ─── Attachment block ─────────────────────────────────────────────────────────
 
@@ -20,18 +21,24 @@ function AttachmentBlock({ attachments = [], onAdd, onRemove }) {
 
   return (
     <div className="space-y-4">
-      <button
-        onClick={() => fileRef.current?.click()}
-        className="w-full rounded-xl py-8 flex flex-col items-center gap-2 transition-all group"
-        style={{ border: '2px dashed rgba(255,255,255,0.1)' }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.3)'; e.currentTarget.style.background = 'rgba(16,185,129,0.04)' }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.background = 'transparent' }}
-      >
-        <Upload size={22} className="text-gray-600 group-hover:text-emerald-400 transition-colors" />
-        <span className="text-gray-400 text-sm">Click to upload images</span>
-        <span className="text-gray-600 text-xs">PNG, JPG, GIF, WebP</span>
-      </button>
-      <input ref={fileRef} type="file" accept="image/*" multiple onChange={onAdd} className="hidden" />
+      {onAdd ? (
+        <>
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="w-full rounded-xl py-8 flex flex-col items-center gap-2 transition-all group"
+            style={{ border: '2px dashed rgba(255,255,255,0.1)' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.3)'; e.currentTarget.style.background = 'rgba(16,185,129,0.04)' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.background = 'transparent' }}
+          >
+            <Upload size={22} className="text-gray-600 group-hover:text-emerald-400 transition-colors" />
+            <span className="text-gray-400 text-sm">Click to upload images</span>
+            <span className="text-gray-600 text-xs">PNG, JPG, GIF, WebP</span>
+          </button>
+          <input ref={fileRef} type="file" accept="image/*" multiple onChange={onAdd} className="hidden" />
+        </>
+      ) : (
+        <p className="text-gray-700 text-xs text-center py-2">You don't have permission to upload files.</p>
+      )}
 
       {attachments.length > 0 ? (
         <div className="grid grid-cols-2 gap-3">
@@ -42,9 +49,11 @@ function AttachmentBlock({ attachments = [], onAdd, onRemove }) {
                 <a href={att.dataUrl} target="_blank" rel="noreferrer" className="p-2 rounded-lg border border-white/20 text-white hover:bg-white/10 transition-all">
                   <ExternalLink size={13} />
                 </a>
-                <button onClick={() => onRemove(att.id)} className="p-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all">
-                  <Trash2 size={13} />
-                </button>
+                {onRemove && (
+                  <button onClick={() => onRemove(att.id)} className="p-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all">
+                    <Trash2 size={13} />
+                  </button>
+                )}
               </div>
               <div className="absolute bottom-0 left-0 right-0 px-2 py-1.5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
                 <p className="text-white text-[10px] truncate">{att.name}</p>
@@ -61,7 +70,7 @@ function AttachmentBlock({ attachments = [], onAdd, onRemove }) {
 
 // ─── People tab ───────────────────────────────────────────────────────────────
 
-function PeopleTab({ node, journeyId, assignee, setAssignee, onCall }) {
+function PeopleTab({ node, journeyId, assignee, setAssignee, onCall, editable }) {
   const currentUser = useAuthStore(s => s.user)
   const { updateNode, addActivity } = useProjectStore()
   const [assignInput, setAssignInput] = useState('')
@@ -126,7 +135,7 @@ function PeopleTab({ node, journeyId, assignee, setAssignee, onCall }) {
             </>
           )}
         </div>
-        {assignee && (
+        {assignee && editable && (
           <button
             onClick={() => doAssign(assignee)}
             className="text-xs text-red-400 hover:text-red-300 px-2.5 py-1 rounded-lg hover:bg-red-500/10 transition-all border border-red-500/15 flex-shrink-0"
@@ -136,31 +145,33 @@ function PeopleTab({ node, journeyId, assignee, setAssignee, onCall }) {
         )}
       </div>
 
-      {/* ── Assign by username ── */}
-      <div>
-        <p className="text-gray-600 text-[10px] font-medium uppercase tracking-widest mb-2">Assign Task</p>
-        <div className="flex gap-2">
-          <input
-            value={assignInput}
-            onChange={e => setAssignInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') doAssign(assignInput) }}
-            placeholder="Enter teammate username…"
-            className="flex-1 px-3 py-2.5 rounded-xl text-sm text-white placeholder:text-gray-700 focus:outline-none"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
-            onFocus={e => { e.target.style.borderColor = 'rgba(16,185,129,0.4)' }}
-            onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.08)' }}
-          />
-          <button
-            onClick={() => doAssign(assignInput)}
-            disabled={!assignInput.trim()}
-            className="px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-            style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}
-          >
-            Assign
-          </button>
+      {/* ── Assign by username — editors only ── */}
+      {editable && (
+        <div>
+          <p className="text-gray-600 text-[10px] font-medium uppercase tracking-widest mb-2">Assign Task</p>
+          <div className="flex gap-2">
+            <input
+              value={assignInput}
+              onChange={e => setAssignInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') doAssign(assignInput) }}
+              placeholder="Enter teammate username…"
+              className="flex-1 px-3 py-2.5 rounded-xl text-sm text-white placeholder:text-gray-700 focus:outline-none"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+              onFocus={e => { e.target.style.borderColor = 'rgba(16,185,129,0.4)' }}
+              onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.08)' }}
+            />
+            <button
+              onClick={() => doAssign(assignInput)}
+              disabled={!assignInput.trim()}
+              className="px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}
+            >
+              Assign
+            </button>
+          </div>
+          <p className="text-gray-700 text-[10px] mt-1.5">Teammates must have an account to be assigned.</p>
         </div>
-        <p className="text-gray-700 text-[10px] mt-1.5">Teammates must have an account to be assigned.</p>
-      </div>
+      )}
 
       {/* ── Invite code ── */}
       <div>
@@ -606,6 +617,9 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
   const { updateNode, deleteNode, addActivity } = useProjectStore()
   const currentUser = useAuthStore(s => s.user)
   const activities  = useProjectStore(useShallow(s => s.activities))
+  const role        = useJourneyRole(journeyId)
+  const editable    = canEdit(role)
+  const uploadable  = canUpload(role)
 
   const [tab,          setTab]          = useState('notes')
   const [callOpen,     setCallOpen]     = useState(false)
@@ -688,7 +702,7 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
         {/* ── Header ── */}
         <div className="px-5 py-4 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="flex items-start gap-3">
-            <button onClick={toggleCheck} className="flex-shrink-0 mt-1 transition-all hover:scale-110">
+            <button onClick={toggleCheck} disabled={!editable} className="flex-shrink-0 mt-1 transition-all hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50">
               {node.checked
                 ? <CheckCircle2 size={20} className="text-emerald-400" />
                 : <Circle size={20} className="text-gray-600 hover:text-emerald-400 transition-colors" />}
@@ -706,9 +720,9 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
                 />
               ) : (
                 <h2
-                  onClick={() => setEditingTitle(true)}
-                  className={`font-semibold text-lg cursor-text hover:text-emerald-400 transition-colors leading-snug ${node.checked ? 'line-through text-gray-500' : 'text-white'}`}
-                  title="Click to rename"
+                  onClick={() => editable && setEditingTitle(true)}
+                  className={`font-semibold text-lg leading-snug ${node.checked ? 'line-through text-gray-500' : 'text-white'} ${editable ? 'cursor-text hover:text-emerald-400 transition-colors' : 'cursor-default'}`}
+                  title={editable ? 'Click to rename' : undefined}
                 >
                   {node.content}
                 </h2>
@@ -730,10 +744,11 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
               <User size={11} className="text-gray-500 flex-shrink-0" />
               <input
                 value={assignee}
-                onChange={e => setAssignee(e.target.value)}
-                onBlur={saveMeta}
+                onChange={e => editable && setAssignee(e.target.value)}
+                onBlur={editable ? saveMeta : undefined}
+                readOnly={!editable}
                 placeholder="Assignee"
-                className="bg-transparent text-white text-xs focus:outline-none placeholder:text-gray-700 w-full"
+                className="bg-transparent text-white text-xs focus:outline-none placeholder:text-gray-700 w-full read-only:cursor-default"
               />
             </div>
             <div
@@ -744,8 +759,9 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
               <input
                 type="date"
                 value={dueDate}
-                onChange={e => { setDueDate(e.target.value); updateNode(journeyId, node.id, { dueDate: e.target.value || null }) }}
-                className="bg-transparent text-white text-xs focus:outline-none w-full"
+                onChange={editable ? e => { setDueDate(e.target.value); updateNode(journeyId, node.id, { dueDate: e.target.value || null }) } : undefined}
+                readOnly={!editable}
+                className="bg-transparent text-white text-xs focus:outline-none w-full read-only:cursor-default"
               />
             </div>
           </div>
@@ -784,15 +800,16 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
               <label className="text-gray-500 text-xs block mb-2">Notes & Description</label>
               <textarea
                 value={notes}
-                onChange={e => setNotes(e.target.value)}
-                placeholder="Add notes, acceptance criteria, links, context…"
+                onChange={e => editable && setNotes(e.target.value)}
+                readOnly={!editable}
+                placeholder={editable ? 'Add notes, acceptance criteria, links, context…' : 'No notes.'}
                 rows={14}
-                className="w-full rounded-xl px-4 py-3 text-gray-200 text-sm focus:outline-none resize-none leading-relaxed placeholder:text-gray-700"
+                className="w-full rounded-xl px-4 py-3 text-gray-200 text-sm focus:outline-none resize-none leading-relaxed placeholder:text-gray-700 read-only:cursor-default"
                 style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
-                onFocus={e => { e.target.style.borderColor = 'rgba(16,185,129,0.3)' }}
-                onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.07)'; saveNotes() }}
+                onFocus={e => { if (editable) e.target.style.borderColor = 'rgba(16,185,129,0.3)' }}
+                onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.07)'; if (editable) saveNotes() }}
               />
-              <p className="text-gray-700 text-xs mt-2">Saved automatically on blur.</p>
+              {editable && <p className="text-gray-700 text-xs mt-2">Saved automatically on blur.</p>}
             </div>
           )}
 
@@ -804,7 +821,11 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
 
           {tab === 'files' && (
             <div className="flex-1 overflow-y-auto p-5">
-              <AttachmentBlock attachments={node.attachments || []} onAdd={handleImageAdd} onRemove={handleImageRemove} />
+              <AttachmentBlock
+                attachments={node.attachments || []}
+                onAdd={uploadable ? handleImageAdd : null}
+                onRemove={editable ? handleImageRemove : null}
+              />
             </div>
           )}
 
@@ -816,6 +837,7 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
                 assignee={assignee}
                 setAssignee={setAssignee}
                 onCall={() => setCallOpen(true)}
+                editable={editable}
               />
             </div>
           )}
@@ -837,12 +859,16 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
           style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
         >
           <span className="text-gray-700 text-[11px] font-mono">#{node.id.slice(0, 8)}</span>
-          <button
-            onClick={handleDelete}
-            className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-red-400 transition-colors px-2 py-1 rounded hover:bg-red-500/8"
-          >
-            <Trash2 size={12} /> Delete task
-          </button>
+          {editable ? (
+            <button
+              onClick={handleDelete}
+              className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-red-400 transition-colors px-2 py-1 rounded hover:bg-red-500/8"
+            >
+              <Trash2 size={12} /> Delete task
+            </button>
+          ) : (
+            <span className="text-gray-700 text-[11px]">View only</span>
+          )}
         </div>
       </div>
 

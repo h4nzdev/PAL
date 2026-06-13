@@ -32,9 +32,9 @@ export default function Sidebar() {
     setExpanded(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login', { replace: true })
   }
 
   const initials = user?.username

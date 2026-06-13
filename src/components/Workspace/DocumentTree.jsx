@@ -6,6 +6,7 @@ import useProjectStore from '../../store/useProjectStore'
 import useAuthStore from '../../store/useAuthStore'
 import TaskDrawer from './TaskDrawer'
 import { COLOR_HEX } from '../../lib/colors'
+import { useJourneyRole, canEdit, canUpload } from '../../lib/useJourneyRole'
 
 // ─── New Section Modal ────────────────────────────────────────────────────────
 
@@ -136,7 +137,7 @@ function NewSectionModal({ journeyId, onClose }) {
 
 // ─── Section Card ─────────────────────────────────────────────────────────────
 
-function SectionCard({ section, journeyId }) {
+function SectionCard({ section, journeyId, role }) {
   const navigate = useNavigate()
   const { deleteNode } = useProjectStore()
   const tasks   = useProjectStore(
@@ -184,19 +185,21 @@ function SectionCard({ section, journeyId }) {
         </div>
       </button>
 
-      <button
-        onClick={(e) => { e.stopPropagation(); deleteNode(journeyId, section.id) }}
-        className="absolute top-3 right-8 opacity-0 group-hover:opacity-100 text-gray-700 hover:text-red-400 transition-all p-1 rounded"
-      >
-        <Trash2 size={12} />
-      </button>
+      {canEdit(role) && (
+        <button
+          onClick={(e) => { e.stopPropagation(); deleteNode(journeyId, section.id) }}
+          className="absolute top-3 right-8 opacity-0 group-hover:opacity-100 text-gray-700 hover:text-red-400 transition-all p-1 rounded"
+        >
+          <Trash2 size={12} />
+        </button>
+      )}
     </div>
   )
 }
 
 // ─── Root task item ───────────────────────────────────────────────────────────
 
-function RootTaskItem({ node, journeyId, onOpen }) {
+function RootTaskItem({ node, journeyId, onOpen, role }) {
   const { updateNode, addActivity } = useProjectStore()
   const user = useAuthStore(s => s.user)
   const updateStreak = useAuthStore(s => s.updateStreak)
@@ -218,7 +221,8 @@ function RootTaskItem({ node, journeyId, onOpen }) {
     >
       <button
         onClick={toggleCheck}
-        className="w-4 h-4 rounded flex-shrink-0 border-2 flex items-center justify-center transition-all"
+        disabled={!canEdit(role)}
+        className="w-4 h-4 rounded flex-shrink-0 border-2 flex items-center justify-center transition-all disabled:cursor-not-allowed disabled:opacity-50"
         style={{ background: node.checked ? '#10b981' : 'transparent', borderColor: node.checked ? '#10b981' : 'rgba(255,255,255,0.2)' }}
       >
         {node.checked && (
@@ -246,6 +250,7 @@ export default function DocumentTree({ journeyId }) {
   const [activeTask,   setActiveTask]   = useState(null)
   const [sectionModal, setSectionModal] = useState(false)
 
+  const role        = useJourneyRole(journeyId)
   const nodes       = useProjectStore(useShallow(s => s.nodes[journeyId] || []))
   const journeyName = useProjectStore(useShallow(s => s.journeys.find(j => j.id === journeyId)?.name || ''))
   const { addNode } = useProjectStore()
@@ -268,7 +273,7 @@ export default function DocumentTree({ journeyId }) {
         )}
 
         {sections.map(section => (
-          <SectionCard key={section.id} section={section} journeyId={journeyId} />
+          <SectionCard key={section.id} section={section} journeyId={journeyId} role={role} />
         ))}
 
         {rootTasks.length > 0 && (
@@ -277,25 +282,31 @@ export default function DocumentTree({ journeyId }) {
               <p className="text-gray-700 text-[10px] px-2 mb-2 uppercase tracking-widest">Quick Tasks</p>
             )}
             {rootTasks.map(task => (
-              <RootTaskItem key={task.id} node={task} journeyId={journeyId} onOpen={t => setActiveTask(t)} />
+              <RootTaskItem key={task.id} node={task} journeyId={journeyId} onOpen={t => setActiveTask(t)} role={role} />
             ))}
           </div>
         )}
 
-        <div className="flex gap-5 pt-4 border-t border-white/5">
-          <button
-            onClick={() => setSectionModal(true)}
-            className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-emerald-400 transition-colors"
-          >
-            <Plus size={13} /> Add Section
-          </button>
-          <button
-            onClick={() => addNode(journeyId, null, 'task', 'New task')}
-            className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-300 transition-colors"
-          >
-            <Plus size={13} /> Quick Task
-          </button>
-        </div>
+        {(canEdit(role) || canUpload(role)) && (
+          <div className="flex gap-5 pt-4 border-t border-white/5">
+            {canEdit(role) && (
+              <button
+                onClick={() => setSectionModal(true)}
+                className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-emerald-400 transition-colors"
+              >
+                <Plus size={13} /> Add Section
+              </button>
+            )}
+            {canUpload(role) && (
+              <button
+                onClick={() => addNode(journeyId, null, 'task', 'New task')}
+                className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-300 transition-colors"
+              >
+                <Plus size={13} /> Quick Task
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {sectionModal && (

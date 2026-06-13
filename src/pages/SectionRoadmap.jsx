@@ -7,10 +7,11 @@ import TaskDrawer from '../components/Workspace/TaskDrawer'
 import EditableTitle from '../components/UI/EditableTitle'
 import useProjectStore from '../store/useProjectStore'
 import useAuthStore from '../store/useAuthStore'
+import { useJourneyRole, canEdit, canUpload } from '../lib/useJourneyRole'
 
 // ── Timeline card (list view) ─────────────────────────────────────────────────
 
-function TimelineCard({ node, journeyId, index, total, onOpen }) {
+function TimelineCard({ node, journeyId, index, total, onOpen, role }) {
   const { updateNode, addActivity } = useProjectStore()
   const user = useAuthStore(s => s.user)
   const updateStreak = useAuthStore(s => s.updateStreak)
@@ -32,7 +33,8 @@ function TimelineCard({ node, journeyId, index, total, onOpen }) {
       <div className="flex flex-col items-center flex-shrink-0" style={{ width: 40 }}>
         <button
           onClick={toggleCheck}
-          className="w-10 h-10 rounded-full flex items-center justify-center z-10 border-2 transition-all flex-shrink-0 hover:scale-105"
+          disabled={!canEdit(role)}
+          className="w-10 h-10 rounded-full flex items-center justify-center z-10 border-2 transition-all flex-shrink-0 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
           style={{
             background: node.checked ? '#10b981' : '#0c1220',
             borderColor: node.checked ? '#10b981' : 'rgba(255,255,255,0.15)',
@@ -80,7 +82,7 @@ function TimelineCard({ node, journeyId, index, total, onOpen }) {
 
 // ── Grid card ────────────────────────────────────────────────────────────────
 
-function GridCard({ node, journeyId, index, onOpen }) {
+function GridCard({ node, journeyId, index, onOpen, role }) {
   const { updateNode, addActivity } = useProjectStore()
   const user = useAuthStore(s => s.user)
   const updateStreak = useAuthStore(s => s.updateStreak)
@@ -111,7 +113,8 @@ function GridCard({ node, journeyId, index, onOpen }) {
       <div className="flex items-start gap-3">
         <button
           onClick={toggleCheck}
-          className="w-8 h-8 rounded-full flex items-center justify-center border-2 flex-shrink-0 transition-all hover:scale-110 mt-0.5"
+          disabled={!canEdit(role)}
+          className="w-8 h-8 rounded-full flex items-center justify-center border-2 flex-shrink-0 transition-all hover:scale-110 mt-0.5 disabled:cursor-not-allowed disabled:opacity-60"
           style={{
             background: node.checked ? '#10b981' : 'transparent',
             borderColor: node.checked ? '#10b981' : 'rgba(255,255,255,0.2)',
@@ -210,6 +213,7 @@ export default function SectionRoadmap() {
   const [activeTask, setActiveTask] = useState(null)
   const [view, setView] = useState('grid')
 
+  const role     = useJourneyRole(journeyId)
   const journey  = useProjectStore(useShallow(s => s.journeys.find(j => j.id === journeyId)))
   const section  = useProjectStore(useShallow(s => (s.nodes[journeyId] || []).find(n => n.id === sectionId)))
   const tasks    = useProjectStore(useShallow(s =>
@@ -258,10 +262,10 @@ export default function SectionRoadmap() {
             <p className="text-gray-600 text-xs mb-0.5">{journey.name}</p>
             <EditableTitle
               value={section.content}
-              onSave={val => updateNode(journeyId, sectionId, { content: val })}
+              onSave={canEdit(role) ? val => updateNode(journeyId, sectionId, { content: val }) : undefined}
               className="text-white font-bold text-2xl hover:text-emerald-400 transition-colors"
               inputClassName="text-white font-bold text-2xl w-full"
-              showIcon
+              showIcon={canEdit(role)}
             />
             {section.description && (
               <p className="text-gray-500 text-sm mt-1 leading-relaxed line-clamp-2">{section.description}</p>
@@ -291,13 +295,15 @@ export default function SectionRoadmap() {
                 <Plus size={22} className="text-gray-700" />
               </div>
               <p className="text-gray-500 text-sm mb-5">No tasks yet. Add your first milestone.</p>
-              <button
-                onClick={() => addNode(journeyId, sectionId, 'task', 'New task')}
-                className="text-emerald-400 border border-emerald-500/25 px-5 py-2.5 rounded-xl text-sm font-medium transition-all hover:bg-emerald-500/10"
-                style={{ background: 'rgba(16,185,129,0.08)' }}
-              >
-                Add First Task
-              </button>
+              {canUpload(role) && (
+                <button
+                  onClick={() => addNode(journeyId, sectionId, 'task', 'New task')}
+                  className="text-emerald-400 border border-emerald-500/25 px-5 py-2.5 rounded-xl text-sm font-medium transition-all hover:bg-emerald-500/10"
+                  style={{ background: 'rgba(16,185,129,0.08)' }}
+                >
+                  Add First Task
+                </button>
+              )}
             </div>
           ) : view === 'list' ? (
             /* ── List / timeline view ── */
@@ -310,15 +316,18 @@ export default function SectionRoadmap() {
                   index={i}
                   total={tasks.length}
                   onOpen={t => setActiveTask(t)}
+                  role={role}
                 />
               ))}
-              <button
-                onClick={() => addNode(journeyId, sectionId, 'task', 'New task')}
-                className="flex items-center gap-2 text-sm text-gray-600 hover:text-emerald-400 transition-colors mt-2"
-                style={{ marginLeft: 60 }}
-              >
-                <Plus size={14} /> Add Task
-              </button>
+              {canUpload(role) && (
+                <button
+                  onClick={() => addNode(journeyId, sectionId, 'task', 'New task')}
+                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-emerald-400 transition-colors mt-2"
+                  style={{ marginLeft: 60 }}
+                >
+                  <Plus size={14} /> Add Task
+                </button>
+              )}
             </div>
           ) : (
             /* ── Grid view ── */
@@ -331,20 +340,23 @@ export default function SectionRoadmap() {
                     journeyId={journeyId}
                     index={i}
                     onOpen={t => setActiveTask(t)}
+                    role={role}
                   />
                 ))}
 
-                {/* Add task card */}
-                <button
-                  onClick={() => addNode(journeyId, sectionId, 'task', 'New task')}
-                  className="rounded-2xl p-4 flex items-center justify-center gap-2 text-sm text-gray-700 hover:text-emerald-400 transition-all group"
-                  style={{ border: '2px dashed rgba(255,255,255,0.07)', minHeight: 80 }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.25)'; e.currentTarget.style.background = 'rgba(16,185,129,0.03)' }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.background = 'transparent' }}
-                >
-                  <Plus size={15} className="transition-colors" />
-                  Add Task
-                </button>
+                {/* Add task card — uploaders and above only */}
+                {canUpload(role) && (
+                  <button
+                    onClick={() => addNode(journeyId, sectionId, 'task', 'New task')}
+                    className="rounded-2xl p-4 flex items-center justify-center gap-2 text-sm text-gray-700 hover:text-emerald-400 transition-all group"
+                    style={{ border: '2px dashed rgba(255,255,255,0.07)', minHeight: 80 }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.25)'; e.currentTarget.style.background = 'rgba(16,185,129,0.03)' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.background = 'transparent' }}
+                  >
+                    <Plus size={15} className="transition-colors" />
+                    Add Task
+                  </button>
+                )}
               </div>
             </div>
           )}
