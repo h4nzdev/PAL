@@ -27,21 +27,40 @@ const useAuthStore = create((set, get) => ({
 
   // Internal: populate user + users list from a Supabase session
   async _hydrateUser(session) {
-    const { data: profile } = await supabase
+    let { data: profile } = await supabase
       .from('profiles')
       .select('username, designation, streak, last_streak_date')
       .eq('id', session.user.id)
       .maybeSingle()
 
+    // First-time Google / OAuth users won't have a profile row yet
+    if (!profile) {
+      const meta = session.user.user_metadata || {}
+      const username = (
+        meta.full_name?.replace(/\s+/g, '').toLowerCase() ||
+        meta.name?.replace(/\s+/g, '').toLowerCase() ||
+        session.user.email?.split('@')[0] ||
+        'user'
+      )
+      await supabase.from('profiles').insert({
+        id:          session.user.id,
+        username,
+        email:       session.user.email,
+        designation: '',
+        streak:      0,
+      })
+      profile = { username, designation: '', streak: 0, last_streak_date: null }
+    }
+
     set({
       user: {
         id:          session.user.id,
         email:       session.user.email,
-        username:    profile?.username || session.user.user_metadata?.username || session.user.email,
-        designation: profile?.designation || '',
+        username:    profile.username || session.user.user_metadata?.username || session.user.email,
+        designation: profile.designation || '',
       },
-      streak:         profile?.streak          || 0,
-      lastStreakDate: profile?.last_streak_date || null,
+      streak:         profile.streak          || 0,
+      lastStreakDate: profile.last_streak_date || null,
     })
 
     // Load all profiles for the People / assign tab
@@ -80,6 +99,17 @@ const useAuthStore = create((set, get) => ({
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw new Error(error.message)
     await get()._hydrateUser(data.session)
+  },
+
+  async signInWithGoogle() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    })
+    if (error) throw new Error(error.message)
+    // Navigation is handled by the OAuth redirect — no navigate() needed here
   },
 
   async logout() {
