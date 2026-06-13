@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, Mic, MicOff, Video, VideoOff, PhoneOff, Copy, Users } from 'lucide-react'
-import useToastStore from '../../store/useToastStore'
+import { toast } from 'sonner'
 
 function fmt(s) {
   const m = Math.floor(s / 60).toString().padStart(2, '0')
@@ -9,7 +9,6 @@ function fmt(s) {
 }
 
 export default function CallModal({ onClose, taskTitle, taskId }) {
-  const toast = useToastStore(s => s.toast)
   const [muted, setMuted]       = useState(false)
   const [cameraOff, setCameraOff] = useState(false)
   const [stream, setStream]     = useState(null)
@@ -59,7 +58,7 @@ export default function CallModal({ onClose, taskTitle, taskId }) {
   const handleCopyLink = () => {
     const link = `${window.location.origin}${window.location.pathname}?task=${taskId}`
     navigator.clipboard?.writeText(link).catch(() => {})
-    toast('Invite link copied to clipboard!')
+    toast.success('Invite link copied to clipboard!')
   }
 
   return (

@@ -34,9 +34,10 @@ export default function Calendar() {
   const today = new Date()
 
   return (
-    <div className="flex min-h-screen bg-gray-950 text-white">
+    <div className="flex min-h-screen text-white" style={{ background: 'var(--bg-base)' }}>
       <Sidebar />
-      <main className="ml-52 flex-1 p-8">
+      <main className="md:ml-52 flex-1 overflow-y-auto">
+      <div className="max-w-6xl mx-auto px-4 py-6 md:px-8 md:py-8 pb-20 md:pb-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold">Calendar</h1>
           <div className="flex items-center gap-3">
@@ -111,6 +112,7 @@ export default function Calendar() {
             No tasks with due dates yet. Add due dates to tasks in your workspace.
           </p>
         )}
+      </div>
       </main>
     </div>
   )

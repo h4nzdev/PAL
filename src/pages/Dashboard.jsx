@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Plus, FolderOpen, Trash2, Search, TrendingUp, CheckSquare, X,
+  Plus, FolderOpen, Trash2, Search, TrendingUp, CheckSquare,
   Flame, Target, AlertTriangle, Clock, Rocket, CalendarDays,
   Settings, BarChart2, ChevronRight, ArrowRight,
 } from 'lucide-react'
@@ -10,8 +10,8 @@ import Sidebar from '../components/Layout/Sidebar'
 import ProgressRing from '../components/Dashboard/ProgressRing'
 import useProjectStore from '../store/useProjectStore'
 import useAuthStore from '../store/useAuthStore'
-import mascot from '../assets/mascot.png'
 import { COLOR_HEX, COLOR_CLASSES } from '../lib/colors'
+import MascotAvatar from '../components/Dashboard/MascotAvatar'
 
 function getGreeting() {
   const h = new Date().getHours()
@@ -20,27 +20,6 @@ function getGreeting() {
   return 'Good evening'
 }
 
-function MascotBubble({ journeyCount }) {
-  const [dismissed, setDismissed] = useState(false)
-  const messages = journeyCount === 0
-    ? ['Ready to map your first journey? Click "New Journey" to begin! 🚀']
-    : ['Looking great! Click any journey to open its workspace. 🗺️', 'Add sections inside a journey to build a full roadmap!', 'Keep checking off tasks — you\'re on a roll! ✅']
-  const [msg] = useState(() => messages[Math.floor(Math.random() * messages.length)])
-  if (dismissed) return null
-  return (
-    <div className="fixed bottom-6 right-6 flex items-end gap-3 z-30">
-      <div className="relative rounded-2xl rounded-br-sm px-4 py-3 max-w-[210px] shadow-2xl" style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.08)' }}>
-        <button onClick={() => setDismissed(true)} className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-colors" style={{ background: '#1f2937' }}>
-          <X size={10} />
-        </button>
-        <p className="text-gray-200 text-xs leading-relaxed">{msg}</p>
-        <div className="absolute -right-2 bottom-3 w-0 h-0" style={{ borderTop: '6px solid transparent', borderLeft: '8px solid rgba(255,255,255,0.08)' }} />
-        <div className="absolute -right-[7px] bottom-3 w-0 h-0" style={{ borderTop: '6px solid transparent', borderLeft: '8px solid #111827' }} />
-      </div>
-      <img src={mascot} alt="pal mascot" className="w-20 h-20 object-contain drop-shadow-xl select-none" />
-    </div>
-  )
-}
 
 function StatCard({ icon: Icon, label, value, sub, color = '#10b981', accent }) {
   return (
@@ -202,10 +181,11 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="flex min-h-screen text-white" style={{ background: '#030712' }}>
+    <div className="flex min-h-screen text-white" style={{ background: 'var(--bg-base)' }}>
       <Sidebar />
 
-      <main className="ml-52 flex-1 p-8 fade-up" style={{ maxWidth: 1200 }}>
+      <main className="md:ml-52 flex-1 overflow-y-auto fade-up">
+      <div className="max-w-6xl mx-auto px-4 py-6 md:px-8 md:py-8 pb-20 md:pb-8">
 
         {/* ── Header ── */}
         <div className="flex items-start justify-between mb-8">
@@ -404,9 +384,10 @@ export default function Dashboard() {
           </div>
         )}
 
+      </div>
       </main>
 
-      <MascotBubble journeyCount={journeys.length} />
+      <MascotAvatar journeys={journeys} nodes={nodes} />
     </div>
   )
 }

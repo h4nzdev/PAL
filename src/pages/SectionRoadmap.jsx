@@ -132,9 +132,9 @@ export default function SectionRoadmap() {
 
   if (!journey || !section) {
     return (
-      <div className="flex min-h-screen text-white" style={{ background: '#030712' }}>
+      <div className="flex min-h-screen text-white" style={{ background: 'var(--bg-base)' }}>
         <Sidebar />
-        <main className="ml-52 flex-1 flex items-center justify-center">
+        <main className="md:ml-52 flex-1 flex items-center justify-center">
           <div className="text-center">
             <p className="text-gray-400 mb-3">Section not found.</p>
             <button onClick={() => navigate(`/journey/${journeyId}`)} className="text-emerald-400 hover:text-emerald-300 text-sm">← Back to workspace</button>
@@ -145,10 +145,10 @@ export default function SectionRoadmap() {
   }
 
   return (
-    <div className="flex min-h-screen text-white" style={{ background: '#030712' }}>
+    <div className="flex min-h-screen text-white" style={{ background: 'var(--bg-base)' }}>
       <Sidebar />
 
-      <main className="ml-52 flex-1 flex flex-col min-h-screen">
+      <main className="md:ml-52 flex-1 flex flex-col min-h-screen">
         {/* Top bar */}
         <div className="flex items-center gap-4 px-8 py-5 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
           <button onClick={() => navigate(`/journey/${journeyId}`)} className="text-gray-500 hover:text-white transition-colors flex-shrink-0 p-1 rounded-lg hover:bg-white/5">
@@ -225,6 +225,7 @@ export default function SectionRoadmap() {
         <TaskDrawer
           node={liveActiveTask}
           journeyId={journeyId}
+          journeyName={journey?.name || ''}
           onClose={() => setActiveTask(null)}
         />
       )}

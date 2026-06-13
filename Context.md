@@ -1,23 +1,39 @@
-installHook.js:1 [locatorjs]: ok
-overrideMethod @ installHook.js:1
-reload.js:22 WebSocket connection to 'ws://127.0.0.1:8000//ws' failed: 
-init @ reload.js:22
-installHook.js:1 The result of getSnapshot should be cached to avoid an infinite loop
-overrideMethod @ installHook.js:1
-react-dom_client.js?v=37bb9f4a:2632 Uncaught Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
-    at getRootForUpdatedFiber (react-dom_client.js?v=37bb9f4a:2632:166)
-    at enqueueConcurrentRenderForLane (react-dom_client.js?v=37bb9f4a:2622:11)
-    at forceStoreRerender (react-dom_client.js?v=37bb9f4a:4580:15)
-    at updateStoreInstance (react-dom_client.js?v=37bb9f4a:4562:36)
-    at Object.react_stack_bottom_frame (react-dom_client.js?v=37bb9f4a:12903:13)
-    at runWithFiberInDEV (react-dom_client.js?v=37bb9f4a:850:66)
-    at commitHookEffectListMount (react-dom_client.js?v=37bb9f4a:6616:153)
-    at commitHookPassiveMountEffects (react-dom_client.js?v=37bb9f4a:6651:55)
-    at commitPassiveMountOnFiber (react-dom_client.js?v=37bb9f4a:7617:22)
-    at recursivelyTraversePassiveMountEffects (react-dom_client.js?v=37bb9f4a:7605:5)
-installHook.js:1 An error occurred in the <SectionCard> component.
+# Task
 
-Consider adding an error boundary to your tree to customize error handling behavior.
-Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+Implement a production-style chat messaging system using React, Supabase, and PostgreSQL.
 
-overrideMethod @ installHook.js:1
+The goal is to handle thousands or millions of messages efficiently without loading all messages into memory.
+
+# Requirements
+
+## Database Structure
+
+Create the following tables:
+
+### chats
+
+- id
+- created_at
+- updated_at
+- last_message
+- last_message_at
+
+### messages
+
+- id
+- chat_id
+- sender_id
+- content
+- created_at
+
+Create proper foreign key relationships.
+
+## Database Optimization
+
+Create indexes for fast message retrieval.
+
+Example:
+
+```sql
+CREATE INDEX idx_messages_chat_created
+ON messages(chat_id, created_at DESC);

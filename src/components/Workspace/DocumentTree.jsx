@@ -246,7 +246,8 @@ export default function DocumentTree({ journeyId }) {
   const [activeTask,   setActiveTask]   = useState(null)
   const [sectionModal, setSectionModal] = useState(false)
 
-  const nodes = useProjectStore(useShallow(s => s.nodes[journeyId] || []))
+  const nodes       = useProjectStore(useShallow(s => s.nodes[journeyId] || []))
+  const journeyName = useProjectStore(useShallow(s => s.journeys.find(j => j.id === journeyId)?.name || ''))
   const { addNode } = useProjectStore()
 
   const liveActiveTask = useProjectStore(useShallow(s =>
@@ -305,6 +306,7 @@ export default function DocumentTree({ journeyId }) {
         <TaskDrawer
           node={liveActiveTask}
           journeyId={journeyId}
+          journeyName={journeyName}
           onClose={() => setActiveTask(null)}
         />
       )}

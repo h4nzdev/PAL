@@ -2,29 +2,88 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* ── CSS custom properties ── */
+:root {
+  --bg-base:     #030712;
+  --bg-surface:  #060d18;
+  --bg-elevated: #0c1220;
+  --bg-card:     rgba(255,255,255,0.03);
+  --bg-card-md:  rgba(255,255,255,0.05);
+  --bg-input:    rgba(255,255,255,0.04);
+  --border:      rgba(255,255,255,0.05);
+  --border-md:   rgba(255,255,255,0.08);
+  --border-lg:   rgba(255,255,255,0.12);
+  --text-primary:   #ffffff;
+  --text-secondary: #9ca3af;
+  --text-tertiary:  #6b7280;
+  --text-muted:     #374151;
+  --scrollbar-thumb: #1f2937;
+  --scrollbar-hover: #374151;
+}
+
+html.light {
+  --bg-base:     #f1f5f9;
+  --bg-surface:  #e8eef8;
+  --bg-elevated: #ffffff;
+  --bg-card:     rgba(255,255,255,0.85);
+  --bg-card-md:  rgba(255,255,255,0.95);
+  --bg-input:    rgba(255,255,255,0.9);
+  --border:      rgba(0,0,0,0.06);
+  --border-md:   rgba(0,0,0,0.09);
+  --border-lg:   rgba(0,0,0,0.14);
+  --text-primary:   #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary:  #64748b;
+  --text-muted:     #94a3b8;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-hover: #94a3b8;
+  color-scheme: light;
+}
+
 body {
-  background-color: #030712;
-  color: white;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #374151; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
 
-/* Page fade-in */
+/* Input date color-scheme */
+input[type="date"] { color-scheme: dark; }
+html.light input[type="date"] { color-scheme: light; }
+
+/* ── Light mode: Tailwind text class overrides ── */
+html.light .text-white           { color: #0f172a !important; }
+html.light .text-gray-100        { color: #1e293b !important; }
+html.light .text-gray-200        { color: #334155 !important; }
+html.light .text-gray-300        { color: #475569 !important; }
+html.light .text-gray-400        { color: #64748b !important; }
+html.light .text-gray-500        { color: #94a3b8 !important; }
+html.light .text-gray-600        { color: #94a3b8 !important; }
+html.light .text-gray-700        { color: #cbd5e1 !important; }
+
+/* ── Light mode: border overrides ── */
+html.light .border-white\/5,
+html.light [class*="border-white/5"]  { border-color: rgba(0,0,0,0.06) !important; }
+html.light .border-white\/8,
+html.light [class*="border-white/8"]  { border-color: rgba(0,0,0,0.09) !important; }
+html.light .border-white\/10,
+html.light [class*="border-white/10"] { border-color: rgba(0,0,0,0.12) !important; }
+
+/* ── Page fade-in ── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.fade-up {
-  animation: fadeUp 0.35s ease-out forwards;
-}
+.fade-up { animation: fadeUp 0.35s ease-out forwards; }
 
-/* Staggered children */
+/* ── Staggered children ── */
 .stagger > * { opacity: 0; animation: fadeUp 0.35s ease-out forwards; }
 .stagger > *:nth-child(1) { animation-delay: 0.05s; }
 .stagger > *:nth-child(2) { animation-delay: 0.1s; }
@@ -33,25 +92,29 @@ body {
 .stagger > *:nth-child(5) { animation-delay: 0.25s; }
 .stagger > *:nth-child(6) { animation-delay: 0.3s; }
 
-/* Toast slide-in */
+/* ── Toast slide-in ── */
 @keyframes slideInRight {
   from { opacity: 0; transform: translateX(24px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 .toast-enter { animation: slideInRight 0.22s ease-out forwards; }
 
-/* Pulse dot */
+/* ── Pulse dot ── */
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  50%       { opacity: 0.4; }
 }
 .pulse-dot { animation: pulse-dot 1.8s ease-in-out infinite; }
 
-/* Shimmer for cards */
+/* ── Mascot float ── */
+@keyframes mascotFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-7px); }
+}
+.mascot-float { animation: mascotFloat 3.2s ease-in-out infinite; }
+
+/* ── Shimmer ── */
 @keyframes shimmer {
   from { background-position: -200% center; }
   to   { background-position: 200% center; }
 }
-
-/* Input date dark mode */
-input[type="date"] { color-scheme: dark; }
