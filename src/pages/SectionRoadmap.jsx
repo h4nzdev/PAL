@@ -208,7 +208,7 @@ export default function SectionRoadmap() {
   const { id: journeyId, sectionId } = useParams()
   const navigate = useNavigate()
   const [activeTask, setActiveTask] = useState(null)
-  const [view, setView] = useState('list')
+  const [view, setView] = useState('grid')
 
   const journey  = useProjectStore(useShallow(s => s.journeys.find(j => j.id === journeyId)))
   const section  = useProjectStore(useShallow(s => (s.nodes[journeyId] || []).find(n => n.id === sectionId)))
