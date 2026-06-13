@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, FolderPlus, Copy, Check, ArrowRight, Users } from 'lucide-react'
+import { ArrowLeft, FolderPlus, Copy, Check, ArrowRight, Hash } from 'lucide-react'
 import useProjectStore from '../store/useProjectStore'
 import useAuthStore from "../store/useAuthStore";
 import { toast } from 'sonner'
 import logo from '../assets/logo.png'
-
-const BASE_URL = 'https://pal-ai-cham.vercel.app'
 
 export default function NewJourney() {
   const navigate = useNavigate()
@@ -26,12 +24,10 @@ export default function NewJourney() {
     setCreated({ id, name: name.trim() })
   }
 
-  const inviteLink = created ? `${BASE_URL}/journey/${created.id}` : ''
-
-  const copyLink = () => {
-    navigator.clipboard.writeText(inviteLink)
+  const copyCode = () => {
+    navigator.clipboard.writeText(created.id)
     setCopied(true)
-    toast.success('Invite link copied!')
+    toast.success('Invite code copied!')
     setTimeout(() => setCopied(false), 2200)
   }
 
@@ -102,19 +98,19 @@ export default function NewJourney() {
               </p>
             </div>
 
-            {/* Invite link section */}
+            {/* Invite code section */}
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-3">
-                <Users size={14} className="text-gray-400" />
-                <p className="text-gray-400 text-xs font-medium">Invite link — share with your team</p>
+                <Hash size={14} className="text-gray-400" />
+                <p className="text-gray-400 text-xs font-medium">Invite code — share with your team</p>
               </div>
               <div
                 className="flex items-center gap-2 rounded-xl p-3"
                 style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
               >
-                <p className="flex-1 text-gray-400 text-xs truncate font-mono select-all">{inviteLink}</p>
+                <p className="flex-1 text-gray-300 text-xs truncate font-mono select-all tracking-wide">{created.id}</p>
                 <button
-                  onClick={copyLink}
+                  onClick={copyCode}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex-shrink-0"
                   style={copied
                     ? { background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.3)' }
@@ -124,7 +120,7 @@ export default function NewJourney() {
                   {copied ? 'Copied!' : 'Copy'}
                 </button>
               </div>
-              <p className="text-gray-700 text-xs mt-2 text-center">Anyone with this link can join your journey</p>
+              <p className="text-gray-700 text-xs mt-2 text-center">Teammates enter this code on the dashboard to join</p>
             </div>
 
             {/* Actions */}

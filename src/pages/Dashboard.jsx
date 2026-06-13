@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   Plus, FolderOpen, Trash2, Search, TrendingUp, CheckSquare,
   Flame, Target, AlertTriangle, Clock, Rocket, CalendarDays,
-  Settings, BarChart2, ChevronRight, ArrowRight,
+  Settings, BarChart2, ChevronRight, ArrowRight, Hash, X, LogIn,
 } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 import Sidebar from '../components/Layout/Sidebar'
@@ -141,6 +141,8 @@ export default function Dashboard() {
     useShallow(s => ({ journeys: s.journeys, activities: s.activities, nodes: s.nodes, deleteJourney: s.deleteJourney }))
   )
   const [search, setSearch] = useState('')
+  const [joinCode, setJoinCode] = useState('')
+  const [joinOpen, setJoinOpen] = useState(false)
 
   const allTasks      = useMemo(() => Object.values(nodes).flat(), [nodes])
   const totalTasks    = allTasks.filter(n => n.type === 'task').length
@@ -172,6 +174,14 @@ export default function Dashboard() {
   }
 
   const todayLabel = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+
+  const handleJoin = () => {
+    const code = joinCode.trim()
+    if (!code) return
+    navigate(`/journey/${code}`)
+    setJoinCode('')
+    setJoinOpen(false)
+  }
 
   const QUICK_ACTIONS = [
     { icon: Rocket,       label: 'New Journey',     sub: 'Start a new project roadmap',   color: '#10b981', onClick: () => navigate('/new-journey') },
@@ -252,11 +262,50 @@ export default function Dashboard() {
         )}
 
         {/* ── Quick Actions ── */}
-        <div className="mb-8 fade-up">
+        <div className="mb-4 fade-up">
           <h2 className="text-gray-500 text-xs uppercase tracking-widest mb-3">Quick Actions</h2>
           <div className="grid grid-cols-4 gap-3">
             {QUICK_ACTIONS.map(qa => <QuickActionCard key={qa.label} {...qa} />)}
           </div>
+        </div>
+
+        {/* ── Join by Code ── */}
+        <div className="mb-8 fade-up">
+          {!joinOpen ? (
+            <button
+              onClick={() => setJoinOpen(true)}
+              className="flex items-center gap-2 text-xs text-gray-600 hover:text-gray-400 transition-colors px-1 py-1"
+            >
+              <Hash size={12} />
+              Have an invite code? Join a journey →
+            </button>
+          ) : (
+            <div
+              className="flex items-center gap-2 rounded-xl px-3 py-2.5 max-w-md"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <Hash size={13} className="text-gray-600 flex-shrink-0" />
+              <input
+                autoFocus
+                value={joinCode}
+                onChange={e => setJoinCode(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleJoin(); if (e.key === 'Escape') setJoinOpen(false) }}
+                placeholder="Paste invite code…"
+                className="flex-1 bg-transparent text-white text-sm placeholder:text-gray-700 focus:outline-none font-mono"
+              />
+              <button
+                onClick={handleJoin}
+                disabled={!joinCode.trim()}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-30"
+                style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}
+              >
+                <LogIn size={12} /> Join
+              </button>
+              <button onClick={() => { setJoinOpen(false); setJoinCode('') }} className="text-gray-700 hover:text-gray-400 p-1 transition-colors">
+                <X size={14} />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ── Journeys ── */}

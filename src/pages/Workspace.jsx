@@ -15,7 +15,7 @@ function JoinJourneyGate({ id, navigate }) {
   const [status,  setStatus]  = useState('loading') // loading | found | notfound
   const [journey, setJourney] = useState(null)
   const [joining, setJoining] = useState(false)
-  const { loadData } = useProjectStore()
+  const { loadData, joinJourney } = useProjectStore()
 
   useEffect(() => {
     supabase
@@ -31,8 +31,7 @@ function JoinJourneyGate({ id, navigate }) {
 
   const join = async () => {
     setJoining(true)
-    // Journey already exists in DB; calling loadData re-fetches all journeys
-    // including ones the user didn't create themselves (RLS allows select to authenticated)
+    joinJourney(id)       // persist so loadData includes it going forward
     await loadData()
     navigate(`/journey/${id}`)
   }

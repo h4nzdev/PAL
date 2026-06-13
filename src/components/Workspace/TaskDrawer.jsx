@@ -85,11 +85,10 @@ function PeopleTab({ node, journeyId, assignee, setAssignee, onCall }) {
     }
   }
 
-  const copyInviteLink = () => {
-    const url = `https://pal-ai-cham.vercel.app/journey/${journeyId}`
-    navigator.clipboard.writeText(url).then(() => {
+  const copyInviteCode = () => {
+    navigator.clipboard.writeText(journeyId).then(() => {
       setCopied(true)
-      toast.success('Invite link copied to clipboard!')
+      toast.success('Invite code copied!')
       setTimeout(() => setCopied(false), 2500)
     })
   }
@@ -163,7 +162,7 @@ function PeopleTab({ node, journeyId, assignee, setAssignee, onCall }) {
         <p className="text-gray-700 text-[10px] mt-1.5">Teammates must have an account to be assigned.</p>
       </div>
 
-      {/* ── Invite link ── */}
+      {/* ── Invite code ── */}
       <div>
         <p className="text-gray-600 text-[10px] font-medium uppercase tracking-widest mb-2">Invite Teammates</p>
         <div
@@ -172,23 +171,23 @@ function PeopleTab({ node, journeyId, assignee, setAssignee, onCall }) {
         >
           <div className="flex items-center gap-2">
             <Users size={14} className="text-gray-600 flex-shrink-0" />
-            <p className="text-gray-400 text-xs">Share this link to invite your team to the journey workspace.</p>
+            <p className="text-gray-400 text-xs">Share this code — teammates enter it on the dashboard to join.</p>
           </div>
           <div
-            className="rounded-lg px-3 py-2.5 text-gray-500 text-xs font-mono truncate"
+            className="rounded-lg px-3 py-2.5 text-gray-300 text-xs font-mono truncate select-all"
             style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
           >
-            https://pal-ai-cham.vercel.app/journey/{journeyId}
+            {journeyId}
           </div>
           <button
-            onClick={copyInviteLink}
+            onClick={copyInviteCode}
             className={`w-full py-2.5 rounded-xl text-sm font-medium transition-all ${
               copied
                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/35'
                 : 'bg-white/5 text-gray-300 hover:bg-white/8 border border-white/8 hover:border-white/15'
             }`}
           >
-            {copied ? '✓ Link copied!' : 'Copy Invite Link'}
+            {copied ? '✓ Code copied!' : 'Copy Invite Code'}
           </button>
         </div>
         <p className="text-gray-700 text-[10px] mt-1.5">Recipients need to create an account to join.</p>

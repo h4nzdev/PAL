@@ -46,6 +46,7 @@ const useProjectStore = create(
       activities: [],
       taskMessages: {},    // { [taskId]: Message[] }
       journeyMessages: {}, // { [journeyId]: Message[] }
+      joinedJourneys: [],  // journey IDs the user joined via invite code
 
       // ── Production chat (chats + messages tables) ──────────────────────────
       chats: {},       // { [journeyId]: chatId }
@@ -54,11 +55,25 @@ const useProjectStore = create(
 
       loading: false,
 
+      // Record a joined journey ID so it persists across sessions
+      joinJourney(journeyId) {
+        set(s => ({
+          joinedJourneys: s.joinedJourneys.includes(journeyId)
+            ? s.joinedJourneys
+            : [...s.joinedJourneys, journeyId],
+        }))
+      },
+
       // Fetch all data for the current user from Supabase
       async loadData() {
-        const { data: jRows, error: jErr } = await supabase
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        // Fetch journeys owned by this user (explicit filter works with open SELECT RLS)
+        const { data: ownRows, error: jErr } = await supabase
           .from("journeys")
           .select("*")
+          .eq("owner_id", user.id)
           .order("created_at");
 
         if (jErr) {
@@ -66,7 +81,17 @@ const useProjectStore = create(
           return;
         }
 
-        const journeys = (jRows || []).map(journeyFromDB);
+        // Also fetch any journeys joined via invite code
+        const ownIds = (ownRows || []).map(j => j.id)
+        const foreignIds = (get().joinedJourneys || []).filter(id => !ownIds.includes(id))
+        let joinedRows = []
+        if (foreignIds.length > 0) {
+          const { data } = await supabase.from("journeys").select("*").in("id", foreignIds)
+          joinedRows = data || []
+        }
+
+        const jRows = [...(ownRows || []), ...joinedRows]
+        const journeys = jRows.map(journeyFromDB);
         const journeyIds = journeys.map((j) => j.id);
 
         // nodes
