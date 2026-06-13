@@ -234,33 +234,57 @@ const useProjectStore = create(
       // ── Team members ──────────────────────────────────────────────────────
 
       async fetchTeamMembers(journeyId) {
-        // 1. Ensure the owner is always registered
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
         const journey = get().journeys.find(j => j.id === journeyId)
-        if (journey?.ownerId) {
-          const { data: ownerProfile } = await supabase
-            .from('profiles').select('username').eq('id', journey.ownerId).maybeSingle()
-          if (ownerProfile) {
-            await supabase.from('journey_members').upsert({
+        const isOwner = journey?.ownerId === user.id
+
+        // 1. Upsert the current visiting user so they always appear
+        //    (covers invited users who joined before the table existed)
+        const { data: myProfile } = await supabase
+          .from('profiles').select('username').eq('id', user.id).maybeSingle()
+        if (myProfile) {
+          const { data: existing } = await supabase
+            .from('journey_members').select('role')
+            .eq('journey_id', journeyId).eq('user_id', user.id).maybeSingle()
+          if (!existing) {
+            await supabase.from('journey_members').insert({
               journey_id: journeyId,
-              user_id:    journey.ownerId,
-              username:   ownerProfile.username,
-              role:       'owner',
-            }, { onConflict: 'journey_id,user_id' })
+              user_id:    user.id,
+              username:   myProfile.username,
+              role:       isOwner ? 'owner' : 'viewer',
+            })
           }
         }
 
-        // 2. Pull current members
-        const { data: existing, error } = await supabase
-          .from('journey_members').select('*').eq('journey_id', journeyId).order('joined_at')
-        if (error) { console.error('fetch members:', error); return }
+        // 2. Also ensure the owner row exists (in case owner never visited Team page)
+        if (!isOwner && journey?.ownerId) {
+          const { data: ownerProfile } = await supabase
+            .from('profiles').select('username').eq('id', journey.ownerId).maybeSingle()
+          if (ownerProfile) {
+            const { data: ownerRow } = await supabase
+              .from('journey_members').select('role')
+              .eq('journey_id', journeyId).eq('user_id', journey.ownerId).maybeSingle()
+            if (!ownerRow) {
+              await supabase.from('journey_members').insert({
+                journey_id: journeyId,
+                user_id:    journey.ownerId,
+                username:   ownerProfile.username,
+                role:       'owner',
+              })
+            }
+          }
+        }
 
-        // 3. Auto-sync anyone who appears in activities but isn't a member yet
+        // 3. Auto-sync anyone found in activities but not yet a member
+        const { data: members0 } = await supabase
+          .from('journey_members').select('username').eq('journey_id', journeyId)
         const { data: actRows } = await supabase
           .from('activities').select('username').eq('journey_id', journeyId)
-        const existingNames = new Set((existing || []).map(m => m.username))
+        const existingNames = new Set((members0 || []).map(m => m.username))
         const missingNames  = [...new Set((actRows || []).map(a => a.username))]
           .filter(u => u && !existingNames.has(u))
-
         if (missingNames.length > 0) {
           const { data: profiles } = await supabase
             .from('profiles').select('id, username').in('username', missingNames)
@@ -274,9 +298,10 @@ const useProjectStore = create(
           }
         }
 
-        // 4. Final fetch after sync
-        const { data: final } = await supabase
+        // 4. Final fetch
+        const { data: final, error } = await supabase
           .from('journey_members').select('*').eq('journey_id', journeyId).order('joined_at')
+        if (error) { console.error('fetch members:', error); return }
         set(s => ({
           teamMembers: {
             ...s.teamMembers,

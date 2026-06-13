@@ -20,9 +20,16 @@ alter table journey_members enable row level security;
 create policy "members_select" on journey_members
   for select to authenticated using (true);
 
--- Users can insert only themselves
+-- Users can insert themselves; journey owner can insert anyone
 create policy "members_insert" on journey_members
-  for insert to authenticated with check (auth.uid() = user_id);
+  for insert to authenticated with check (
+    auth.uid() = user_id
+    or exists (
+      select 1 from journeys
+      where journeys.id = journey_members.journey_id
+        and journeys.owner_id = auth.uid()
+    )
+  );
 
 -- Only the journey owner can update roles
 create policy "members_update" on journey_members
