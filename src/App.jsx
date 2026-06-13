@@ -1,0 +1,74 @@
+import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import useAuthStore from './store/useAuthStore'
+import useProjectStore from './store/useProjectStore'
+import ToastContainer from './components/UI/Toast'
+import PWAPrompt from './components/UI/PWAPrompt'
+import Landing from './pages/Landing'
+import Auth from './pages/Auth'
+import Dashboard from './pages/Dashboard'
+import NewJourney from './pages/NewJourney'
+import Workspace from './pages/Workspace'
+import SectionRoadmap from './pages/SectionRoadmap'
+import Calendar from './pages/Calendar'
+import Settings from './pages/Settings'
+
+function Guard({ children }) {
+  const user = useAuthStore(s => s.user)
+  return user ? children : <Navigate to="/login" replace />
+}
+
+function GuestGuard({ children }) {
+  const user = useAuthStore(s => s.user)
+  return user ? <Navigate to="/dashboard" replace /> : children
+}
+
+// Initialises auth session + loads project data whenever the user changes
+function AppInit({ children }) {
+  const init      = useAuthStore(s => s.init)
+  const user      = useAuthStore(s => s.user)
+  const authLoading = useAuthStore(s => s.loading)
+  const loadData  = useProjectStore(s => s.loadData)
+
+  useEffect(() => { init() }, [])
+
+  useEffect(() => {
+    if (user) loadData()
+  }, [user?.id])
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#030712' }}>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 rounded-full border-2 border-emerald-500/30 border-t-emerald-400 animate-spin" />
+          <p className="text-gray-500 text-sm">Loading JourneyPad…</p>
+        </div>
+      </div>
+    )
+  }
+
+  return children
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppInit>
+        <ToastContainer />
+        <PWAPrompt />
+        <Routes>
+          <Route path="/"          element={<GuestGuard><Landing /></GuestGuard>} />
+          <Route path="/login"     element={<GuestGuard><Auth /></GuestGuard>} />
+          <Route path="/register"  element={<GuestGuard><Auth /></GuestGuard>} />
+          <Route path="/dashboard" element={<Guard><Dashboard /></Guard>} />
+          <Route path="/new-journey" element={<Guard><NewJourney /></Guard>} />
+          <Route path="/journey/:id" element={<Guard><Workspace /></Guard>} />
+          <Route path="/journey/:id/section/:sectionId" element={<Guard><SectionRoadmap /></Guard>} />
+          <Route path="/calendar"  element={<Guard><Calendar /></Guard>} />
+          <Route path="/settings"  element={<Guard><Settings /></Guard>} />
+          <Route path="*"          element={<Navigate to="/" replace />} />
+        </Routes>
+      </AppInit>
+    </BrowserRouter>
+  )
+}
