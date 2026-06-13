@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Bot, MessageCircle, Loader2, Users } from 'lucide-react'
+import { Bot, MessageCircle, Users, Loader2 } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 import Sidebar from '../components/Layout/Sidebar'
 import DocumentTree from '../components/Workspace/DocumentTree'
@@ -120,11 +120,22 @@ export default function Workspace() {
             </span>
           </div>
           <button
+            onClick={() => navigate(`/journey/${id}/team`)}
+            className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg mr-1 transition-all"
+            style={{ background: 'rgba(255,255,255,0.05)', color: '#9ca3af', border: '1px solid transparent' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#d1d5db' }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af' }}
+          >
+            <Users size={15} /> Team
+          </button>
+          <button
             onClick={() => navigate(`/journey/${id}/chat`)}
             className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg mr-2 transition-all"
             style={{ background: 'rgba(255,255,255,0.05)', color: '#9ca3af', border: '1px solid transparent' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#d1d5db' }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af' }}
           >
-            <MessageCircle size={15} /> Team Chat
+            <MessageCircle size={15} /> Chat
           </button>
           <button
             onClick={() => setChatOpen(o => !o)}

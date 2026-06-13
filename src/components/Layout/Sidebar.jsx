@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Calendar, Settings, Plus, LogOut, MessageCircle, ChevronDown, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, Calendar, Settings, Plus, LogOut, MessageCircle, Users, ChevronDown, ChevronRight } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 import useProjectStore from '../../store/useProjectStore'
 import useAuthStore from '../../store/useAuthStore'
@@ -25,6 +25,7 @@ export default function Sidebar() {
   const isActive        = (path) => location.pathname === path
   const isJourneyActive = (id)   => location.pathname.startsWith(`/journey/${id}`)
   const isChatActive    = (id)   => location.pathname === `/journey/${id}/chat`
+  const isTeamActive    = (id)   => location.pathname === `/journey/${id}/team`
 
   const toggleExpand = (id, e) => {
     e.stopPropagation()
@@ -105,19 +106,32 @@ export default function Sidebar() {
                     </button>
                   </div>
 
-                  {/* Sub-nav: Chat link */}
+                  {/* Sub-nav: Chat + Team links */}
                   {isOpen && (
-                    <button
-                      onClick={() => navigate(`/journey/${j.id}/chat`)}
-                      className={`w-full flex items-center gap-2 pl-8 pr-3 py-1.5 rounded-lg text-xs transition-all ${
-                        chatActive
-                          ? 'text-emerald-400 bg-emerald-500/10'
-                          : 'text-gray-600 hover:text-gray-300 hover:bg-white/5'
-                      }`}
-                    >
-                      <MessageCircle size={12} />
-                      Team Chat
-                    </button>
+                    <div className="space-y-0.5">
+                      <button
+                        onClick={() => navigate(`/journey/${j.id}/chat`)}
+                        className={`w-full flex items-center gap-2 pl-8 pr-3 py-1.5 rounded-lg text-xs transition-all ${
+                          chatActive
+                            ? 'text-emerald-400 bg-emerald-500/10'
+                            : 'text-gray-600 hover:text-gray-300 hover:bg-white/5'
+                        }`}
+                      >
+                        <MessageCircle size={12} />
+                        Team Chat
+                      </button>
+                      <button
+                        onClick={() => navigate(`/journey/${j.id}/team`)}
+                        className={`w-full flex items-center gap-2 pl-8 pr-3 py-1.5 rounded-lg text-xs transition-all ${
+                          isTeamActive(j.id)
+                            ? 'text-emerald-400 bg-emerald-500/10'
+                            : 'text-gray-600 hover:text-gray-300 hover:bg-white/5'
+                        }`}
+                      >
+                        <Users size={12} />
+                        Team
+                      </button>
+                    </div>
                   )}
                 </div>
               )

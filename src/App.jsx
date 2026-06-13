@@ -14,6 +14,7 @@ import SectionRoadmap from './pages/SectionRoadmap'
 import Calendar from './pages/Calendar'
 import Settings from './pages/Settings'
 import JourneyChat from './pages/JourneyChat'
+import JourneyTeam from './pages/JourneyTeam'
 import BottomNav from './components/Layout/BottomNav'
 
 // Applies the persisted theme class to <html> on every render
@@ -89,6 +90,7 @@ export default function App() {
           <Route path="/journey/:id" element={<Guard><Workspace /></Guard>} />
           <Route path="/journey/:id/section/:sectionId" element={<Guard><SectionRoadmap /></Guard>} />
           <Route path="/journey/:id/chat" element={<Guard><JourneyChat /></Guard>} />
+          <Route path="/journey/:id/team" element={<Guard><JourneyTeam /></Guard>} />
           <Route path="/calendar"  element={<Guard><Calendar /></Guard>} />
           <Route path="/settings"  element={<Guard><Settings /></Guard>} />
           <Route path="*"          element={<Navigate to="/" replace />} />

@@ -6,7 +6,7 @@ import { supabase } from '../supabaseClient'
 // ── Column mappers ────────────────────────────────────────────────────────────
 
 function journeyFromDB(row) {
-  return { id: row.id, name: row.name, color: row.color, createdAt: row.created_at }
+  return { id: row.id, name: row.name, color: row.color, createdAt: row.created_at, ownerId: row.owner_id }
 }
 
 function nodeFromDB(row) {
@@ -47,6 +47,7 @@ const useProjectStore = create(
       taskMessages: {},    // { [taskId]: Message[] }
       journeyMessages: {}, // { [journeyId]: Message[] }
       joinedJourneys: [],  // journey IDs the user joined via invite code
+      teamMembers: {},     // { [journeyId]: Member[] }
 
       // ── Production chat (chats + messages tables) ──────────────────────────
       chats: {},       // { [journeyId]: chatId }
@@ -55,13 +56,30 @@ const useProjectStore = create(
 
       loading: false,
 
-      // Record a joined journey ID so it persists across sessions
-      joinJourney(journeyId) {
+      // Record a joined journey and register in journey_members table
+      async joinJourney(journeyId) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
         set(s => ({
           joinedJourneys: s.joinedJourneys.includes(journeyId)
             ? s.joinedJourneys
             : [...s.joinedJourneys, journeyId],
         }))
+
+        // Get username from profiles
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', user.id)
+          .maybeSingle()
+
+        await supabase.from('journey_members').upsert({
+          journey_id: journeyId,
+          user_id:    user.id,
+          username:   profile?.username || user.email?.split('@')[0] || 'user',
+          role:       'viewer',
+        }, { onConflict: 'journey_id,user_id' })
       },
 
       // Fetch all data for the current user from Supabase
@@ -153,6 +171,17 @@ const useProjectStore = create(
           nodes: { ...s.nodes, [id]: [] },
         }));
 
+        // Get owner's username for the members table
+        supabase.from('profiles').select('username').eq('id', userId).maybeSingle()
+          .then(({ data: profile }) => {
+            supabase.from('journey_members').insert({
+              journey_id: id,
+              user_id:    userId,
+              username:   profile?.username || 'owner',
+              role:       'owner',
+            }).then(({ error }) => { if (error) console.error('owner member insert:', error) })
+          })
+
         supabase
           .from("journeys")
           .insert({
@@ -200,6 +229,62 @@ const useProjectStore = create(
           .then(({ error }) => {
             if (error) console.error("journey delete:", error);
           });
+      },
+
+      // ── Team members ──────────────────────────────────────────────────────
+
+      async fetchTeamMembers(journeyId) {
+        const { data, error } = await supabase
+          .from('journey_members')
+          .select('*')
+          .eq('journey_id', journeyId)
+          .order('joined_at')
+        if (error) { console.error('fetch members:', error); return }
+        set(s => ({
+          teamMembers: {
+            ...s.teamMembers,
+            [journeyId]: (data || []).map(m => ({
+              id:       m.id,
+              userId:   m.user_id,
+              username: m.username,
+              role:     m.role,
+              joinedAt: m.joined_at,
+            })),
+          },
+        }))
+      },
+
+      async updateMemberRole(journeyId, userId, role) {
+        // Optimistic update
+        set(s => ({
+          teamMembers: {
+            ...s.teamMembers,
+            [journeyId]: (s.teamMembers[journeyId] || []).map(m =>
+              m.userId === userId ? { ...m, role } : m
+            ),
+          },
+        }))
+        const { error } = await supabase
+          .from('journey_members')
+          .update({ role })
+          .eq('journey_id', journeyId)
+          .eq('user_id', userId)
+        if (error) console.error('update role:', error)
+      },
+
+      async removeMember(journeyId, userId) {
+        set(s => ({
+          teamMembers: {
+            ...s.teamMembers,
+            [journeyId]: (s.teamMembers[journeyId] || []).filter(m => m.userId !== userId),
+          },
+        }))
+        const { error } = await supabase
+          .from('journey_members')
+          .delete()
+          .eq('journey_id', journeyId)
+          .eq('user_id', userId)
+        if (error) console.error('remove member:', error)
       },
 
       // ── Nodes ─────────────────────────────────────────────────────────────
