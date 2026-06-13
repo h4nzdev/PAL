@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Copy, Check, Crown, Pencil, Eye, Upload, Trash2, Hash, UserPlus, Loader2 } from 'lucide-react'
+import { ArrowLeft, Copy, Check, Crown, Pencil, Eye, Upload, Trash2, Hash, UserPlus, Loader2, Plus } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 import { toast } from 'sonner'
 import Sidebar from '../components/Layout/Sidebar'
@@ -139,7 +139,9 @@ export default function JourneyTeam() {
 
   const journey = useProjectStore(useShallow(s => s.journeys.find(j => j.id === journeyId)))
   const members = useProjectStore(useShallow(s => s.teamMembers[journeyId] || []))
-  const { fetchTeamMembers, updateMemberRole, removeMember } = useProjectStore()
+  const { fetchTeamMembers, updateMemberRole, removeMember, addMember } = useProjectStore()
+  const [addUsername, setAddUsername] = useState('')
+  const [adding, setAdding] = useState(false)
 
   const isOwner = journey?.ownerId === user?.id
 
@@ -155,6 +157,20 @@ export default function JourneyTeam() {
   const handleRemove = async (userId, username) => {
     await removeMember(journeyId, userId)
     toast(`@${username} removed from the journey`)
+  }
+
+  const handleAddMember = async () => {
+    if (!addUsername.trim()) return
+    setAdding(true)
+    try {
+      await addMember(journeyId, addUsername)
+      toast.success(`@${addUsername.trim()} added as Viewer`)
+      setAddUsername('')
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setAdding(false)
+    }
   }
 
   const copyCode = () => {
@@ -208,12 +224,12 @@ export default function JourneyTeam() {
                 {loading ? (
                   <div className="flex items-center justify-center py-12 gap-3 text-gray-600">
                     <Loader2 size={16} className="animate-spin" />
-                    <span className="text-sm">Loading members…</span>
+                    <span className="text-sm">Syncing members…</span>
                   </div>
                 ) : members.length === 0 ? (
                   <div className="text-center py-12">
                     <p className="text-gray-600 text-sm">No members yet.</p>
-                    <p className="text-gray-700 text-xs mt-1">Share the invite code below to add teammates.</p>
+                    <p className="text-gray-700 text-xs mt-1">Share the invite code below or add a teammate by username.</p>
                   </div>
                 ) : (
                   members.map(m => (
@@ -227,6 +243,32 @@ export default function JourneyTeam() {
                       onRemove={handleRemove}
                     />
                   ))
+                )}
+
+                {/* Add member form — owner only */}
+                {isOwner && (
+                  <div className="flex items-center gap-2 px-4 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                    <input
+                      value={addUsername}
+                      onChange={e => setAddUsername(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleAddMember()}
+                      placeholder="Add by username…"
+                      disabled={adding}
+                      className="flex-1 px-3 py-2 rounded-xl text-sm text-white placeholder:text-gray-700 focus:outline-none disabled:opacity-50"
+                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                      onFocus={e => { e.target.style.borderColor = 'rgba(16,185,129,0.35)' }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.08)' }}
+                    />
+                    <button
+                      onClick={handleAddMember}
+                      disabled={!addUsername.trim() || adding}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-30"
+                      style={{ background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}
+                    >
+                      {adding ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+                      Add
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

@@ -234,16 +234,53 @@ const useProjectStore = create(
       // ── Team members ──────────────────────────────────────────────────────
 
       async fetchTeamMembers(journeyId) {
-        const { data, error } = await supabase
-          .from('journey_members')
-          .select('*')
-          .eq('journey_id', journeyId)
-          .order('joined_at')
+        // 1. Ensure the owner is always registered
+        const journey = get().journeys.find(j => j.id === journeyId)
+        if (journey?.ownerId) {
+          const { data: ownerProfile } = await supabase
+            .from('profiles').select('username').eq('id', journey.ownerId).maybeSingle()
+          if (ownerProfile) {
+            await supabase.from('journey_members').upsert({
+              journey_id: journeyId,
+              user_id:    journey.ownerId,
+              username:   ownerProfile.username,
+              role:       'owner',
+            }, { onConflict: 'journey_id,user_id' })
+          }
+        }
+
+        // 2. Pull current members
+        const { data: existing, error } = await supabase
+          .from('journey_members').select('*').eq('journey_id', journeyId).order('joined_at')
         if (error) { console.error('fetch members:', error); return }
+
+        // 3. Auto-sync anyone who appears in activities but isn't a member yet
+        const { data: actRows } = await supabase
+          .from('activities').select('username').eq('journey_id', journeyId)
+        const existingNames = new Set((existing || []).map(m => m.username))
+        const missingNames  = [...new Set((actRows || []).map(a => a.username))]
+          .filter(u => u && !existingNames.has(u))
+
+        if (missingNames.length > 0) {
+          const { data: profiles } = await supabase
+            .from('profiles').select('id, username').in('username', missingNames)
+          for (const p of (profiles || [])) {
+            await supabase.from('journey_members').upsert({
+              journey_id: journeyId,
+              user_id:    p.id,
+              username:   p.username,
+              role:       'viewer',
+            }, { onConflict: 'journey_id,user_id' })
+          }
+        }
+
+        // 4. Final fetch after sync
+        const { data: final } = await supabase
+          .from('journey_members').select('*').eq('journey_id', journeyId).order('joined_at')
         set(s => ({
           teamMembers: {
             ...s.teamMembers,
-            [journeyId]: (data || []).map(m => ({
+            [journeyId]: (final || []).map(m => ({
               id:       m.id,
               userId:   m.user_id,
               username: m.username,
@@ -252,6 +289,37 @@ const useProjectStore = create(
             })),
           },
         }))
+      },
+
+      async addMember(journeyId, username) {
+        const { data: profile } = await supabase
+          .from('profiles').select('id, username').eq('username', username.trim()).maybeSingle()
+        if (!profile) throw new Error(`No user found with username "${username.trim()}"`)
+
+        const { error } = await supabase.from('journey_members').upsert({
+          journey_id: journeyId,
+          user_id:    profile.id,
+          username:   profile.username,
+          role:       'viewer',
+        }, { onConflict: 'journey_id,user_id' })
+        if (error) throw new Error(error.message)
+
+        set(s => {
+          const existing = s.teamMembers[journeyId] || []
+          if (existing.find(m => m.userId === profile.id)) return {}
+          return {
+            teamMembers: {
+              ...s.teamMembers,
+              [journeyId]: [...existing, {
+                id:       crypto.randomUUID(),
+                userId:   profile.id,
+                username: profile.username,
+                role:     'viewer',
+                joinedAt: new Date().toISOString(),
+              }],
+            },
+          }
+        })
       },
 
       async updateMemberRole(journeyId, userId, role) {
