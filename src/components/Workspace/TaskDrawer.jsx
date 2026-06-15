@@ -1,9 +1,28 @@
 import { useState, useEffect, useRef } from 'react'
 import {
-  X, CheckCircle2, Circle, Calendar, User,
-  FileText, GitBranch, ImageIcon, Trash2, Upload, ExternalLink,
-  Users, Bot, Send, Video, Clock, Sparkles, Loader2, RotateCcw, Copy, Check,
-} from 'lucide-react'
+  X,
+  CheckCircle2,
+  Circle,
+  Calendar,
+  User,
+  FileText,
+  GitBranch,
+  ImageIcon,
+  Trash2,
+  Upload,
+  ExternalLink,
+  Eye,
+  Users,
+  Bot,
+  Send,
+  Video,
+  Clock,
+  Sparkles,
+  Loader2,
+  RotateCcw,
+  Copy,
+  Check,
+} from "lucide-react";
 import { fetchTaskAIResponse } from '../../lib/groqClient'
 import Markdown from '../../lib/Markdown'
 import { useShallow } from 'zustand/react/shallow'
@@ -16,8 +35,8 @@ import { useJourneyRole, canEdit, canUpload } from '../../lib/useJourneyRole'
 
 // ─── Attachment block ─────────────────────────────────────────────────────────
 
-function AttachmentBlock({ attachments = [], onAdd, onRemove }) {
-  const fileRef = useRef(null)
+function AttachmentBlock({ attachments = [], onAdd, onRemove, onPreview }) {
+  const fileRef = useRef(null);
 
   return (
     <div className="space-y-4">
@@ -26,46 +45,99 @@ function AttachmentBlock({ attachments = [], onAdd, onRemove }) {
           <button
             onClick={() => fileRef.current?.click()}
             className="w-full rounded-xl py-8 flex flex-col items-center gap-2 transition-all group"
-            style={{ border: '2px dashed rgba(255,255,255,0.1)' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.3)'; e.currentTarget.style.background = 'rgba(16,185,129,0.04)' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.background = 'transparent' }}
+            style={{ border: "2px dashed rgba(255,255,255,0.1)" }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "rgba(16,185,129,0.3)";
+              e.currentTarget.style.background = "rgba(16,185,129,0.04)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+              e.currentTarget.style.background = "transparent";
+            }}
           >
-            <Upload size={22} className="text-gray-600 group-hover:text-emerald-400 transition-colors" />
-            <span className="text-gray-400 text-sm">Click to upload images</span>
+            <Upload
+              size={22}
+              className="text-gray-600 group-hover:text-emerald-400 transition-colors"
+            />
+            <span className="text-gray-400 text-sm">
+              Click to upload images
+            </span>
             <span className="text-gray-600 text-xs">PNG, JPG, GIF, WebP</span>
           </button>
-          <input ref={fileRef} type="file" accept="image/*" multiple onChange={onAdd} className="hidden" />
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={onAdd}
+            className="hidden"
+          />
         </>
       ) : (
-        <p className="text-gray-700 text-xs text-center py-2">You don't have permission to upload files.</p>
+        <p className="text-gray-700 text-xs text-center py-2">
+          You don't have permission to upload files.
+        </p>
       )}
 
       {attachments.length > 0 ? (
         <div className="grid grid-cols-2 gap-3">
-          {attachments.map(att => (
-            <div key={att.id} className="group relative rounded-xl overflow-hidden border border-white/10 bg-black/30" style={{ aspectRatio: '16/9' }}>
-              <img src={att.dataUrl} alt={att.name} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all" style={{ background: 'rgba(0,0,0,0.65)' }}>
-                <a href={att.dataUrl} target="_blank" rel="noreferrer" className="p-2 rounded-lg border border-white/20 text-white hover:bg-white/10 transition-all">
+          {attachments.map((att) => (
+            <div
+              key={att.id}
+              className="group relative rounded-xl overflow-hidden border border-white/10 bg-black/30"
+              style={{ aspectRatio: "16/9" }}
+            >
+              <img
+                src={att.dataUrl}
+                alt={att.name}
+                className="w-full h-full object-cover"
+              />
+              <div
+                className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all"
+                style={{ background: "rgba(0,0,0,0.65)" }}
+              >
+                <button
+                  onClick={() => onPreview?.(att)}
+                  className="p-2 rounded-lg border border-white/20 text-white hover:bg-white/10 transition-all"
+                >
+                  <Eye size={13} />
+                </button>
+                <a
+                  href={att.dataUrl}
+                  target="_blank"
+                  rel="noopener"
+                  className="p-2 rounded-lg border border-white/20 text-white hover:bg-white/10 transition-all"
+                >
                   <ExternalLink size={13} />
                 </a>
                 {onRemove && (
-                  <button onClick={() => onRemove(att.id)} className="p-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all">
+                  <button
+                    onClick={() => onRemove(att.id)}
+                    className="p-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all"
+                  >
                     <Trash2 size={13} />
                   </button>
                 )}
               </div>
-              <div className="absolute bottom-0 left-0 right-0 px-2 py-1.5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
+              <div
+                className="absolute bottom-0 left-0 right-0 px-2 py-1.5"
+                style={{
+                  background:
+                    "linear-gradient(to top, rgba(0,0,0,0.8), transparent)",
+                }}
+              >
                 <p className="text-white text-[10px] truncate">{att.name}</p>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-center text-gray-700 text-sm py-4">No attachments yet.</p>
+        <p className="text-center text-gray-700 text-sm py-4">
+          No attachments yet.
+        </p>
       )}
     </div>
-  )
+  );
 }
 
 // ─── People tab ───────────────────────────────────────────────────────────────
@@ -623,6 +695,7 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
 
   const [tab,          setTab]          = useState('notes')
   const [callOpen,     setCallOpen]     = useState(false)
+  const [previewImage, setPreviewImage] = useState(null);
   const [editingTitle, setEditingTitle] = useState(false)
   const [title,        setTitle]        = useState(node.content)
   const [assignee,     setAssignee]     = useState(node.assignedTo || '')
@@ -635,10 +708,18 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
   useEffect(() => { setAssignee(node.assignedTo || '') }, [node.assignedTo])
 
   useEffect(() => {
-    const h = (e) => { if (e.key === 'Escape' && !callOpen) onClose() }
-    window.addEventListener('keydown', h)
-    return () => window.removeEventListener('keydown', h)
-  }, [onClose, callOpen])
+    const h = (e) => {
+      if (e.key === "Escape") {
+        if (previewImage) {
+          setPreviewImage(null);
+        } else if (!callOpen) {
+          onClose();
+        }
+      }
+    };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [onClose, callOpen, previewImage]);
 
   const saveTitle = () => {
     const trimmed = title.trim()
@@ -690,22 +771,38 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
       {/* Backdrop */}
       <div
         className="fixed inset-0 z-40"
-        style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)' }}
+        style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)" }}
         onClick={onClose}
       />
 
       {/* Drawer */}
       <div
         className="fixed right-0 top-0 h-full z-50 flex flex-col shadow-2xl"
-        style={{ width: 520, background: '#0c1220', borderLeft: '1px solid rgba(255,255,255,0.08)' }}
+        style={{
+          width: 520,
+          background: "#0c1220",
+          borderLeft: "1px solid rgba(255,255,255,0.08)",
+        }}
       >
         {/* ── Header ── */}
-        <div className="px-5 py-4 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div
+          className="px-5 py-4 flex-shrink-0"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        >
           <div className="flex items-start gap-3">
-            <button onClick={toggleCheck} disabled={!editable} className="flex-shrink-0 mt-1 transition-all hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50">
-              {node.checked
-                ? <CheckCircle2 size={20} className="text-emerald-400" />
-                : <Circle size={20} className="text-gray-600 hover:text-emerald-400 transition-colors" />}
+            <button
+              onClick={toggleCheck}
+              disabled={!editable}
+              className="flex-shrink-0 mt-1 transition-all hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {node.checked ? (
+                <CheckCircle2 size={20} className="text-emerald-400" />
+              ) : (
+                <Circle
+                  size={20}
+                  className="text-gray-600 hover:text-emerald-400 transition-colors"
+                />
+              )}
             </button>
 
             <div className="flex-1 min-w-0">
@@ -713,24 +810,32 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
                 <input
                   autoFocus
                   value={title}
-                  onChange={e => setTitle(e.target.value)}
+                  onChange={(e) => setTitle(e.target.value)}
                   onBlur={saveTitle}
-                  onKeyDown={e => { if (e.key === 'Enter') saveTitle(); if (e.key === 'Escape') setEditingTitle(false) }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveTitle();
+                    if (e.key === "Escape") setEditingTitle(false);
+                  }}
                   className="w-full bg-transparent text-white font-semibold text-lg focus:outline-none"
                 />
               ) : (
                 <h2
                   onClick={() => editable && setEditingTitle(true)}
-                  className={`font-semibold text-lg leading-snug ${node.checked ? 'line-through text-gray-500' : 'text-white'} ${editable ? 'cursor-text hover:text-emerald-400 transition-colors' : 'cursor-default'}`}
-                  title={editable ? 'Click to rename' : undefined}
+                  className={`font-semibold text-lg leading-snug ${node.checked ? "line-through text-gray-500" : "text-white"} ${editable ? "cursor-text hover:text-emerald-400 transition-colors" : "cursor-default"}`}
+                  title={editable ? "Click to rename" : undefined}
                 >
                   {node.content}
                 </h2>
               )}
-              <p className="text-gray-700 text-[11px] mt-0.5">Click title to rename · Esc to close</p>
+              <p className="text-gray-700 text-[11px] mt-0.5">
+                Click title to rename · Esc to close
+              </p>
             </div>
 
-            <button onClick={onClose} className="text-gray-600 hover:text-white transition-colors flex-shrink-0 p-1">
+            <button
+              onClick={onClose}
+              className="text-gray-600 hover:text-white transition-colors flex-shrink-0 p-1"
+            >
               <X size={17} />
             </button>
           </div>
@@ -739,12 +844,15 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
           <div className="flex gap-2 mt-3 ml-8">
             <div
               className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 flex-1"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.07)",
+              }}
             >
               <User size={11} className="text-gray-500 flex-shrink-0" />
               <input
                 value={assignee}
-                onChange={e => editable && setAssignee(e.target.value)}
+                onChange={(e) => editable && setAssignee(e.target.value)}
                 onBlur={editable ? saveMeta : undefined}
                 readOnly={!editable}
                 placeholder="Assignee"
@@ -753,13 +861,25 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
             </div>
             <div
               className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 flex-1"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.07)",
+              }}
             >
               <Calendar size={11} className="text-gray-500 flex-shrink-0" />
               <input
                 type="date"
                 value={dueDate}
-                onChange={editable ? e => { setDueDate(e.target.value); updateNode(journeyId, node.id, { dueDate: e.target.value || null }) } : undefined}
+                onChange={
+                  editable
+                    ? (e) => {
+                        setDueDate(e.target.value);
+                        updateNode(journeyId, node.id, {
+                          dueDate: e.target.value || null,
+                        });
+                      }
+                    : undefined
+                }
                 readOnly={!editable}
                 className="bg-transparent text-white text-xs focus:outline-none w-full read-only:cursor-default"
               />
@@ -768,24 +888,41 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
         </div>
 
         {/* ── Tabs ── */}
-        <div className="flex px-4 flex-shrink-0 overflow-x-auto" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div
+          className="flex px-4 flex-shrink-0 overflow-x-auto"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        >
           {TABS.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => setTab(key)}
               className={`flex items-center gap-1.5 px-3 py-3 text-xs font-medium border-b-2 -mb-px transition-all whitespace-nowrap flex-shrink-0 ${
-                tab === key ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-gray-600 hover:text-gray-300'
+                tab === key
+                  ? "border-emerald-500 text-emerald-400"
+                  : "border-transparent text-gray-600 hover:text-gray-300"
               }`}
             >
               <Icon size={11} />
               {label}
-              {key === 'files' && attachCount > 0 && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold" style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399' }}>
+              {key === "files" && attachCount > 0 && (
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
+                  style={{
+                    background: "rgba(16,185,129,0.15)",
+                    color: "#34d399",
+                  }}
+                >
                   {attachCount}
                 </span>
               )}
-              {key === 'ai' && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold" style={{ background: 'rgba(139,92,246,0.15)', color: '#a78bfa' }}>
+              {key === "ai" && (
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
+                  style={{
+                    background: "rgba(139,92,246,0.15)",
+                    color: "#a78bfa",
+                  }}
+                >
                   ✦
                 </span>
               )}
@@ -795,41 +932,61 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
 
         {/* ── Tab body ── */}
         <div className="flex-1 overflow-hidden flex flex-col">
-          {tab === 'notes' && (
+          {tab === "notes" && (
             <div className="flex-1 overflow-y-auto p-5">
-              <label className="text-gray-500 text-xs block mb-2">Notes & Description</label>
+              <label className="text-gray-500 text-xs block mb-2">
+                Notes & Description
+              </label>
               <textarea
                 value={notes}
-                onChange={e => editable && setNotes(e.target.value)}
+                onChange={(e) => editable && setNotes(e.target.value)}
                 readOnly={!editable}
-                placeholder={editable ? 'Add notes, acceptance criteria, links, context…' : 'No notes.'}
+                placeholder={
+                  editable
+                    ? "Add notes, acceptance criteria, links, context…"
+                    : "No notes."
+                }
                 rows={14}
                 className="w-full rounded-xl px-4 py-3 text-gray-200 text-sm focus:outline-none resize-none leading-relaxed placeholder:text-gray-700 read-only:cursor-default"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
-                onFocus={e => { if (editable) e.target.style.borderColor = 'rgba(16,185,129,0.3)' }}
-                onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.07)'; if (editable) saveNotes() }}
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                }}
+                onFocus={(e) => {
+                  if (editable)
+                    e.target.style.borderColor = "rgba(16,185,129,0.3)";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "rgba(255,255,255,0.07)";
+                  if (editable) saveNotes();
+                }}
               />
-              {editable && <p className="text-gray-700 text-xs mt-2">Saved automatically on blur.</p>}
+              {editable && (
+                <p className="text-gray-700 text-xs mt-2">
+                  Saved automatically on blur.
+                </p>
+              )}
             </div>
           )}
 
-          {tab === 'diagram' && (
+          {tab === "diagram" && (
             <div className="flex-1 overflow-hidden p-4">
               <FlowchartEditor diagram={node.diagram} onSave={saveDiagram} />
             </div>
           )}
 
-          {tab === 'files' && (
+          {tab === "files" && (
             <div className="flex-1 overflow-y-auto p-5">
               <AttachmentBlock
                 attachments={node.attachments || []}
                 onAdd={uploadable ? handleImageAdd : null}
                 onRemove={editable ? handleImageRemove : null}
+                onPreview={setPreviewImage}
               />
             </div>
           )}
 
-          {tab === 'people' && (
+          {tab === "people" && (
             <div className="flex-1 overflow-y-auto p-5">
               <PeopleTab
                 node={node}
@@ -842,11 +999,15 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
             </div>
           )}
 
-          {tab === 'ai' && (
-            <TaskAI node={node} journeyId={journeyId} journeyName={journeyName} />
+          {tab === "ai" && (
+            <TaskAI
+              node={node}
+              journeyId={journeyId}
+              journeyName={journeyName}
+            />
           )}
 
-          {tab === 'history' && (
+          {tab === "history" && (
             <div className="flex-1 overflow-y-auto p-5">
               <HistoryTab nodeId={node.id} activities={activities} />
             </div>
@@ -856,9 +1017,11 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
         {/* ── Footer ── */}
         <div
           className="px-5 py-3 flex items-center justify-between flex-shrink-0"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
         >
-          <span className="text-gray-700 text-[11px] font-mono">#{node.id.slice(0, 8)}</span>
+          <span className="text-gray-700 text-[11px] font-mono">
+            #{node.id.slice(0, 8)}
+          </span>
           {editable ? (
             <button
               onClick={handleDelete}
@@ -872,6 +1035,34 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
         </div>
       </div>
 
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center px-4"
+          aria-modal="true"
+        >
+          <div
+            className="fixed inset-0 bg-black/80"
+            onClick={() => setPreviewImage(null)}
+          />
+          <div className="relative z-10 max-w-[90vw] max-h-[90vh] rounded-3xl overflow-hidden bg-[#0c1220] border border-white/10 shadow-2xl">
+            <button
+              onClick={() => setPreviewImage(null)}
+              className="absolute right-3 top-3 z-20 rounded-full bg-black/60 p-2 text-white hover:bg-white/10 transition-all"
+              aria-label="Close preview"
+            >
+              <X size={18} />
+            </button>
+            <img
+              src={previewImage.dataUrl}
+              alt={previewImage.name}
+              className="max-w-[90vw] max-h-[90vh] object-contain block"
+            />
+            <div className="px-4 py-3 bg-black/70 text-white text-xs text-center">
+              {previewImage.name}
+            </div>
+          </div>
+        </div>
+      )}
       {callOpen && (
         <CallModal
           onClose={() => setCallOpen(false)}
@@ -880,5 +1071,5 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
         />
       )}
     </>
-  )
+  );
 }
