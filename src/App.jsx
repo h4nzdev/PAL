@@ -36,6 +36,11 @@ function GuestGuard({ children }) {
   return user ? <Navigate to="/dashboard" replace /> : children
 }
 
+function AuthedBottomNav() {
+  const user = useAuthStore(s => s.user)
+  return user ? <BottomNav /> : null
+}
+
 // Initialises auth session + loads project data whenever the user changes
 function AppInit({ children }) {
   const init      = useAuthStore(s => s.init)
@@ -80,7 +85,7 @@ export default function App() {
           }}
         />
         <PWAPrompt />
-        <BottomNav />
+        <AuthedBottomNav />
         <Routes>
           <Route path="/"          element={<GuestGuard><Landing /></GuestGuard>} />
           <Route path="/login"     element={<GuestGuard><Auth /></GuestGuard>} />

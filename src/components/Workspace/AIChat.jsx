@@ -57,7 +57,7 @@ function ActionBadge({ action }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function AIChat({ journeyId, journeyName, nodes }) {
+export default function AIChat({ journeyId, journeyName, nodes, hideHeader = false }) {
   const { addNode, updateNode, createJourney } = useProjectStore()
   const user = useAuthStore(s => s.user)
 
@@ -207,12 +207,14 @@ Keep responses concise — 1 to 3 sentences.`
   return (
     <div className="flex flex-col h-full">
 
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-white/5 flex items-center gap-2 flex-shrink-0">
-        <Bot size={15} className="text-emerald-400" />
-        <span className="text-white text-sm font-medium">AI Co-Pilot</span>
-        <span className="ml-auto text-xs text-gray-600 bg-white/5 px-2 py-0.5 rounded-full">Groq</span>
-      </div>
+      {/* Header — hidden when the parent (mobile overlay) renders its own */}
+      {!hideHeader && (
+        <div className="px-4 py-3 border-b border-white/5 flex items-center gap-2 flex-shrink-0">
+          <Bot size={15} className="text-emerald-400" />
+          <span className="text-white text-sm font-medium">AI Co-Pilot</span>
+          <span className="ml-auto text-xs text-gray-600 bg-white/5 px-2 py-0.5 rounded-full">Groq</span>
+        </div>
+      )}
 
       {/* Daily usage bar */}
       <div className="px-4 py-2 flex items-center justify-between flex-shrink-0">
@@ -276,13 +278,13 @@ Keep responses concise — 1 to 3 sentences.`
       </div>
 
       {/* Quick actions */}
-      <div className="px-3 py-2 border-t border-white/5 flex flex-wrap gap-1.5 flex-shrink-0">
+      <div className="px-3 py-2 border-t border-white/5 flex gap-1.5 flex-shrink-0 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
         {QUICK_ACTIONS.map(qa => (
           <button
             key={qa}
             onClick={() => setInput(qa)}
             disabled={busy || atLimit}
-            className="text-xs bg-white/5 hover:bg-white/10 disabled:opacity-30 text-gray-400 hover:text-white px-2.5 py-1 rounded-full transition-all flex items-center gap-1"
+            className="text-xs bg-white/5 hover:bg-white/10 disabled:opacity-30 text-gray-400 hover:text-white px-2.5 py-1 rounded-full transition-all flex items-center gap-1 flex-shrink-0 whitespace-nowrap"
           >
             <Zap size={10} /> {qa}
           </button>

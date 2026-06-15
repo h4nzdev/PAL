@@ -57,12 +57,12 @@ function MemberRow({ member, isOwnerView, currentUserId, journeyId, onRoleChange
 
   return (
     <div
-      className="flex items-center gap-4 px-5 py-4 transition-all group"
+      className="flex items-center gap-2 md:gap-4 px-4 md:px-5 py-3 md:py-4 transition-all group"
       style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
     >
       {/* Avatar */}
       <div
-        className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm"
+        className="w-8 md:w-9 h-8 md:h-9 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-xs md:text-sm"
         style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
       >
         {initials}
@@ -70,17 +70,17 @@ function MemberRow({ member, isOwnerView, currentUserId, journeyId, onRoleChange
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="text-white text-sm font-medium truncate">
+        <p className="text-white text-sm md:text-base font-medium truncate">
           {member.username}
-          {isCurrentUser && <span className="text-gray-600 text-xs ml-2">(you)</span>}
+          {isCurrentUser && <span className="text-gray-600 text-xs ml-1 md:ml-2">(you)</span>}
         </p>
-        <p className="text-gray-700 text-xs">
+        <p className="text-gray-700 text-xs hidden sm:block">
           Joined {new Date(member.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
         </p>
       </div>
 
       {/* Role */}
-      <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
         {isOwnerView && !isOwner ? (
           <RoleSelect
             value={member.role}
@@ -197,25 +197,26 @@ export default function JourneyTeam() {
 
       <main className="md:ml-52 flex-1 flex flex-col">
         {/* Top bar */}
-        <div className="flex items-center gap-4 px-8 py-5 flex-shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
+        <div className="flex items-center gap-2 md:gap-4 px-4 md:px-8 py-4 md:py-5 flex-shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
           <button
             onClick={() => navigate(`/journey/${journeyId}`)}
-            className="text-gray-500 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5"
+            className="text-gray-500 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5 flex-shrink-0"
           >
             <ArrowLeft size={17} />
           </button>
           <div className="min-w-0 flex-1">
-            <p className="text-gray-600 text-xs mb-0.5">{journey.name}</p>
-            <h1 className="text-white font-bold text-xl">Team</h1>
+            <p className="text-gray-600 text-xs mb-0.5 truncate">{journey.name}</p>
+            <h1 className="text-white font-bold text-lg md:text-xl">Team</h1>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34d399' }}>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs flex-shrink-0" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34d399' }}>
             <UserPlus size={11} />
-            {members.length} member{members.length !== 1 ? 's' : ''}
+            <span className="hidden sm:inline">{members.length} member{members.length !== 1 ? 's' : ''}</span>
+            <span className="sm:hidden">{members.length}</span>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-8 py-8 space-y-8 pb-24">
+          <div className="max-w-4xl mx-auto px-4 md:px-8 py-6 md:py-8 space-y-6 md:space-y-8 pb-24">
 
             {/* ── Members list ── */}
             <div>
@@ -247,14 +248,14 @@ export default function JourneyTeam() {
 
                 {/* Add member form — owner only */}
                 {isOwner && (
-                  <div className="flex items-center gap-2 px-4 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2 px-3 md:px-4 py-3 md:py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                     <input
                       value={addUsername}
                       onChange={e => setAddUsername(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleAddMember()}
                       placeholder="Add by username…"
                       disabled={adding}
-                      className="flex-1 px-3 py-2 rounded-xl text-sm text-white placeholder:text-gray-700 focus:outline-none disabled:opacity-50"
+                      className="flex-1 px-3 py-2 md:py-2.5 rounded-xl text-sm text-white placeholder:text-gray-700 focus:outline-none disabled:opacity-50"
                       style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
                       onFocus={e => { e.target.style.borderColor = 'rgba(16,185,129,0.35)' }}
                       onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.08)' }}
@@ -262,11 +263,11 @@ export default function JourneyTeam() {
                     <button
                       onClick={handleAddMember}
                       disabled={!addUsername.trim() || adding}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-30"
+                      className="flex items-center justify-center gap-1.5 px-4 py-2 md:py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-30 flex-shrink-0 whitespace-nowrap"
                       style={{ background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}
                     >
                       {adding ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
-                      Add
+                      <span className="hidden sm:inline">Add</span>
                     </button>
                   </div>
                 )}

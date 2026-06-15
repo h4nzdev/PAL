@@ -262,58 +262,69 @@ export default function JourneyChat() {
   }
 
   return (
-    <div className="flex h-screen text-white overflow-hidden" style={{ background: 'var(--bg-base)' }}>
+    <div
+      className="flex h-screen text-white overflow-hidden"
+      style={{ background: "var(--bg-base)" }}
+    >
       <Sidebar />
 
       <div className="md:ml-52 flex-1 flex flex-col min-w-0 overflow-hidden">
-
         {/* ── Top bar ── */}
         <div
-          className="px-6 py-4 flex items-center justify-between flex-shrink-0"
-          style={{ borderBottom: '1px solid var(--border)' }}
+          className="px-3 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between flex-shrink-0 gap-3 sm:gap-0"
+          style={{ borderBottom: "1px solid var(--border)" }}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3 min-w-0">
             <button
               onClick={() => navigate(`/journey/${id}`)}
-              className="text-gray-500 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5"
+              className="text-gray-500 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5 flex-shrink-0"
             >
               <ArrowLeft size={16} />
             </button>
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                <MessageCircle size={14} className="text-emerald-400" />
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 md:w-8 h-7 md:h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                <MessageCircle size={13} className="text-emerald-400" />
               </div>
-              <div>
-                <p className="text-white font-semibold text-sm leading-tight">{journey.name}</p>
-                <p className="text-gray-600 text-xs">Team Chat · {messages.length} message{messages.length !== 1 ? 's' : ''}</p>
+              <div className="min-w-0">
+                <p className="text-white font-semibold text-sm md:text-base leading-tight truncate">
+                  {journey.name}
+                </p>
+                <p className="text-gray-600 text-xs">
+                  Team Chat{" "}
+                  <span className="hidden sm:inline">
+                    · {messages.length} message
+                    {messages.length !== 1 ? "s" : ""}
+                  </span>
+                </p>
               </div>
             </div>
           </div>
 
           <button
-            onClick={() => setCallActive(c => !c)}
-            className={`flex items-center gap-2 text-sm px-4 py-2 rounded-xl transition-all font-medium ${
+            onClick={() => setCallActive((c) => !c)}
+            className={`flex items-center justify-center gap-1 md:gap-2 text-xs md:text-sm px-3 md:px-4 py-2 md:py-2 rounded-xl transition-all font-medium flex-shrink-0 whitespace-nowrap ${
               callActive
-                ? 'bg-red-500/15 text-red-400 border border-red-500/25 hover:bg-red-500/20'
-                : 'bg-emerald-500/12 text-emerald-400 border border-emerald-500/22 hover:bg-emerald-500/18'
+                ? "bg-red-500/15 text-red-400 border border-red-500/25 hover:bg-red-500/20"
+                : "bg-emerald-500/12 text-emerald-400 border border-emerald-500/22 hover:bg-emerald-500/18"
             }`}
           >
-            {callActive ? <PhoneOff size={14} /> : <Phone size={14} />}
-            {callActive ? 'End Voice Call' : 'Start Voice Call'}
+            {callActive ? <PhoneOff size={13} /> : <Phone size={13} />}
+            <span className="hidden sm:inline">
+              {callActive ? "End Voice Call" : "Start Voice Call"}
+            </span>
+            <span className="sm:hidden">{callActive ? "End" : "Start"}</span>
           </button>
         </div>
 
         {/* ── Body ── */}
         <div className="flex flex-1 overflow-hidden">
-
           {/* Messages column */}
           <div className="flex-1 flex flex-col overflow-hidden">
-
             {/* Message list */}
             <div
               ref={scrollRef}
               onScroll={handleScroll}
-              className="flex-1 overflow-y-auto px-6 py-4 space-y-3"
+              className="flex-1 overflow-y-auto px-3 md:px-6 py-3 md:py-4 space-y-3"
             >
               {/* Load more button */}
               {hasMore && (
@@ -323,17 +334,25 @@ export default function JourneyChat() {
                     disabled={loadingMore}
                     className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-300 px-4 py-2 rounded-xl border border-white/8 hover:border-white/15 transition-all disabled:opacity-50"
                   >
-                    {loadingMore
-                      ? <><Loader2 size={12} className="animate-spin" /> Loading…</>
-                      : <><ChevronUp size={12} /> Load older messages</>
-                    }
+                    {loadingMore ? (
+                      <>
+                        <Loader2 size={12} className="animate-spin" /> Loading…
+                      </>
+                    ) : (
+                      <>
+                        <ChevronUp size={12} /> Load older messages
+                      </>
+                    )}
                   </button>
                 </div>
               )}
 
               {initialising ? (
                 <div className="flex flex-col items-center justify-center h-full gap-3">
-                  <Loader2 size={22} className="animate-spin text-emerald-500/50" />
+                  <Loader2
+                    size={22}
+                    className="animate-spin text-emerald-500/50"
+                  />
                   <p className="text-gray-600 text-sm">Loading messages…</p>
                 </div>
               ) : messages.length === 0 ? (
@@ -342,15 +361,25 @@ export default function JourneyChat() {
                     <MessageCircle size={24} className="text-gray-600" />
                   </div>
                   <p className="text-gray-400 font-medium">No messages yet</p>
-                  <p className="text-gray-600 text-sm">Start the team conversation for <span className="text-emerald-500">{journey.name}</span></p>
+                  <p className="text-gray-600 text-sm">
+                    Start the team conversation for{" "}
+                    <span className="text-emerald-500">{journey.name}</span>
+                  </p>
                 </div>
               ) : (
                 messages.map((m, i) => {
-                  const isMe     = m.senderId === currentUser?.id
-                  const showName = !isMe && (i === 0 || messages[i - 1]?.senderId !== m.senderId)
+                  const isMe = m.senderId === currentUser?.id;
+                  const showName =
+                    !isMe &&
+                    (i === 0 || messages[i - 1]?.senderId !== m.senderId);
                   return (
-                    <MessageBubble key={m.id} msg={m} isMe={isMe} showName={showName} />
-                  )
+                    <MessageBubble
+                      key={m.id}
+                      msg={m}
+                      isMe={isMe}
+                      showName={showName}
+                    />
+                  );
                 })
               )}
             </div>
@@ -358,21 +387,31 @@ export default function JourneyChat() {
             {/* Input bar */}
             <div
               className="px-4 md:px-6 py-3 md:py-4 flex-shrink-0 pb-safe"
-              style={{ borderTop: '1px solid var(--border)', paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
+              style={{
+                borderTop: "1px solid var(--border)",
+                paddingBottom: "max(12px, env(safe-area-inset-bottom))",
+              }}
             >
               <div className="flex gap-3 items-end">
                 <div className="flex-1">
                   <textarea
                     ref={inputRef}
                     value={text}
-                    onChange={e => setText(e.target.value)}
+                    onChange={(e) => setText(e.target.value)}
                     onKeyDown={onKey}
                     placeholder="Message the team… (Enter to send, Shift+Enter for new line)"
                     rows={2}
                     className="w-full px-4 py-3 rounded-2xl text-white text-sm placeholder:text-gray-700 focus:outline-none resize-none leading-relaxed"
-                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
-                    onFocus={e => { e.target.style.borderColor = 'rgba(16,185,129,0.35)' }}
-                    onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.08)' }}
+                    style={{
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = "rgba(16,185,129,0.35)";
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = "rgba(255,255,255,0.08)";
+                    }}
                   />
                 </div>
                 <button
@@ -386,15 +425,21 @@ export default function JourneyChat() {
             </div>
           </div>
 
-          {/* Voice call panel */}
+          {/* Desktop: voice call side panel */}
           {callActive && (
-            <div className="w-72 flex-shrink-0">
+            <div className="hidden md:block w-72 flex-shrink-0">
               <VoiceCallPanel onEnd={() => setCallActive(false)} />
             </div>
           )}
 
+          {/* Mobile: voice call full-screen overlay */}
+          {callActive && (
+            <div className="md:hidden fixed inset-0 z-50">
+              <VoiceCallPanel onEnd={() => setCallActive(false)} />
+            </div>
+          )}
         </div>
       </div>
     </div>
-  )
+  );
 }
