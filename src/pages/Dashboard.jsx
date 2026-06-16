@@ -135,6 +135,72 @@ function QuickActionCard({ icon: Icon, label, sub, color, onClick }) {
   );
 }
 
+function Sk({ className = '' }) {
+  return <div className={`animate-pulse rounded-xl bg-white/6 ${className}`} />
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-6 md:px-8 md:py-8 pb-20 md:pb-8">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-8">
+        <div className="space-y-2">
+          <Sk className="h-3 w-24" />
+          <Sk className="h-7 w-52" />
+          <Sk className="h-3 w-64" />
+        </div>
+        <Sk className="h-10 w-32 rounded-xl" />
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="rounded-2xl p-5 border border-white/5" style={{ background: 'rgba(255,255,255,0.03)' }}>
+            <Sk className="w-9 h-9 rounded-xl mb-3" />
+            <Sk className="h-3 w-20 mb-2" />
+            <Sk className="h-8 w-12 mb-1.5" />
+            <Sk className="h-3 w-28" />
+          </div>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="mb-4">
+        <Sk className="h-3 w-24 mb-3" />
+        <div className="grid grid-cols-2 gap-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="rounded-3xl p-4 border border-white/5 flex items-center gap-3 min-h-[110px]" style={{ background: 'rgba(255,255,255,0.03)' }}>
+              <Sk className="w-11 h-11 rounded-2xl flex-shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Sk className="h-4 w-24" />
+                <Sk className="h-3 w-32" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Journeys */}
+      <div className="mb-4">
+        <Sk className="h-3 w-16 mb-4" />
+        <div className="grid grid-cols-2 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="rounded-2xl border border-white/5 overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)' }}>
+              <div className="h-0.5 w-full animate-pulse" style={{ background: 'rgba(255,255,255,0.06)' }} />
+              <div className="p-5 space-y-3">
+                <Sk className="h-5 w-14 rounded-full" />
+                <Sk className="h-4 w-3/4" />
+                <Sk className="h-3 w-1/2" />
+                <Sk className="h-1 w-full rounded-full mt-2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function StreakBadge({ streak }) {
   return (
     <div
@@ -154,8 +220,8 @@ export default function Dashboard() {
   const user         = useAuthStore(s => s.user)
   const streak       = useAuthStore(s => s.streak)
 
-  const { journeys, activities, nodes, deleteJourney } = useProjectStore(
-    useShallow(s => ({ journeys: s.journeys, activities: s.activities, nodes: s.nodes, deleteJourney: s.deleteJourney }))
+  const { journeys, activities, nodes, deleteJourney, loading } = useProjectStore(
+    useShallow(s => ({ journeys: s.journeys, activities: s.activities, nodes: s.nodes, deleteJourney: s.deleteJourney, loading: s.loading }))
   )
   const [search, setSearch] = useState('')
   const [joinCode, setJoinCode] = useState('')
@@ -214,8 +280,9 @@ export default function Dashboard() {
     >
       <Sidebar />
 
-      <main className="md:ml-52 flex-1 overflow-y-auto fade-up">
-        <div className="max-w-6xl mx-auto px-4 py-6 md:px-8 md:py-8 pb-20 md:pb-8">
+      <main className="md:ml-52 flex-1 overflow-y-auto">
+        {loading ? <DashboardSkeleton /> : (
+        <div className="max-w-6xl mx-auto px-4 py-6 md:px-8 md:py-8 pb-20 md:pb-8 fade-up">
           {/* ── Header ── */}
           <div className="flex items-start justify-between mb-8">
             <div>
@@ -561,6 +628,7 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+        )}
       </main>
 
       <MascotAvatar journeys={journeys} nodes={nodes} />

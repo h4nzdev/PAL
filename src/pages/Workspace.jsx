@@ -81,6 +81,72 @@ function JoinJourneyGate({ id, navigate }) {
   )
 }
 
+// ── Workspace skeleton ────────────────────────────────────────────────────────
+
+function Sk({ className = '' }) {
+  return <div className={`animate-pulse rounded-xl bg-white/6 ${className}`} />
+}
+
+function WorkspaceSkeleton() {
+  return (
+    <div className="flex h-screen text-white overflow-hidden" style={{ background: 'var(--bg-base)' }}>
+      <Sidebar />
+      <div className="md:ml-52 flex-1 flex flex-col min-w-0">
+        {/* Top bar */}
+        <div className="flex-shrink-0 px-3 md:px-6 py-3 md:py-4 gap-2 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)' }}>
+          <div className="flex items-center gap-3">
+            <Sk className="md:hidden w-2.5 h-2.5 rounded-full" />
+            <Sk className="h-6 w-44" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Sk className="h-6 w-14 rounded-full" />
+            <div className="hidden md:flex gap-1.5">
+              <Sk className="h-8 w-20" />
+              <Sk className="h-8 w-20" />
+              <Sk className="h-8 w-24" />
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile tab bar */}
+        <div className="flex md:hidden gap-1.5 px-3 py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
+          <Sk className="flex-1 h-9 rounded-xl" />
+          <Sk className="flex-1 h-9 rounded-xl" />
+          <Sk className="flex-1 h-9 rounded-xl" />
+        </div>
+
+        {/* Document tree body */}
+        <div className="flex-1 overflow-hidden px-3 md:px-6 pt-5 pb-6 space-y-6">
+          {[
+            { titleW: 'w-36', tasks: [160, 220, 140] },
+            { titleW: 'w-48', tasks: [200, 130] },
+            { titleW: 'w-28', tasks: [180, 250, 100] },
+          ].map((s, i) => (
+            <div key={i} className="space-y-2.5">
+              {/* Section header */}
+              <div className="flex items-center gap-2.5">
+                <Sk className="w-5 h-5 rounded" />
+                <Sk className={`h-5 ${s.titleW}`} />
+              </div>
+              {/* Task rows */}
+              {s.tasks.map((w, j) => (
+                <div key={j} className="flex items-center gap-3 pl-8">
+                  <Sk className="w-4 h-4 rounded flex-shrink-0" />
+                  <Sk className="h-4 rounded-lg" style={{ width: w }} />
+                </div>
+              ))}
+            </div>
+          ))}
+          {/* Add section button area */}
+          <div className="pt-2 border-t border-white/5">
+            <Sk className="h-4 w-24" />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main Workspace ────────────────────────────────────────────────────────────
 
 export default function Workspace() {
@@ -90,12 +156,15 @@ export default function Workspace() {
 
   const journey      = useProjectStore(useShallow(s => s.journeys.find(j => j.id === id)))
   const nodes        = useProjectStore(useShallow(s => s.nodes[id] || []))
+  const loading      = useProjectStore(s => s.loading)
   const { updateJourney } = useProjectStore()
 
   const totalTasks = nodes.filter(n => n.type === 'task').length
   const doneTasks  = nodes.filter(n => n.type === 'task' && n.checked).length
   const progress   = totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0
   const accentHex  = COLOR_HEX[journey?.color] || COLOR_HEX.emerald
+
+  if (loading && !journey) return <WorkspaceSkeleton />
 
   if (!journey) {
     return <JoinJourneyGate id={id} onJoined={() => window.location.reload()} navigate={navigate} />

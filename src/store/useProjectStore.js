@@ -88,6 +88,7 @@ const useProjectStore = create(
       async loadData() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
+        set({ loading: true })
 
         // Fetch journeys owned by this user (explicit filter works with open SELECT RLS)
         const { data: ownRows, error: jErr } = await supabase
@@ -144,6 +145,7 @@ const useProjectStore = create(
             : { data: [] };
 
         set({
+          loading: false,
           journeys,
           nodes: nodesByJourney,
           activities: (actRows || []).map((a) => ({
