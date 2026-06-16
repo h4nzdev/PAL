@@ -1,10 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
-import { Send, X, Loader2 } from 'lucide-react'
+import { Send, Loader2 } from 'lucide-react'
 import { fetchTaskAIResponse } from '../../lib/groqClient'
 import Markdown from '../../lib/Markdown'
 import mascot from '../../assets/mascot.png'
-
-// ── Context-aware opening line ────────────────────────────────────────────────
 
 function getOpeningLine({ journeyCount, taskCount, doneCount, overdueCount }) {
   if (journeyCount === 0)
@@ -34,24 +32,21 @@ Rules:
 - Do NOT use markdown headers (##). Plain text only, inline bold with **word** is fine.`
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
-
 export default function MascotAvatar({ journeys, nodes }) {
-  const [open,     setOpen]     = useState(false)
-  const [messages, setMessages] = useState([])
-  const [input,    setInput]    = useState('')
-  const [loading,  setLoading]  = useState(false)
+  const [open,      setOpen]      = useState(false)
+  const [messages,  setMessages]  = useState([])
+  const [input,     setInput]     = useState('')
+  const [loading,   setLoading]   = useState(false)
   const [displayed, setDisplayed] = useState({})
   const [typingId,  setTypingId]  = useState(null)
 
-  const scrollRef  = useRef(null)
-  const inputRef   = useRef(null)
+  const scrollRef   = useRef(null)
+  const inputRef    = useRef(null)
   const intervalRef = useRef(null)
 
-  // Build stats from store data
-  const allTasks    = Object.values(nodes).flat().filter(n => n.type === 'task')
-  const doneCount   = allTasks.filter(n => n.checked).length
-  const today       = new Date().toISOString().slice(0, 10)
+  const allTasks     = Object.values(nodes).flat().filter(n => n.type === 'task')
+  const doneCount    = allTasks.filter(n => n.checked).length
+  const today        = new Date().toISOString().slice(0, 10)
   const overdueCount = allTasks.filter(n => n.dueDate && n.dueDate < today && !n.checked).length
   const journeyNames = journeys.map(j => j.name)
 
@@ -65,7 +60,6 @@ export default function MascotAvatar({ journeys, nodes }) {
 
   const openingLine = getOpeningLine(stats)
 
-  // Show opening message when chat first opens (deferred to avoid sync setState-in-effect)
   useEffect(() => {
     if (!open || messages.length > 0) return
     const t = setTimeout(() => {
@@ -76,7 +70,6 @@ export default function MascotAvatar({ journeys, nodes }) {
     return () => clearTimeout(t)
   }, [open])
 
-  // Auto-scroll
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages.length, displayed])
@@ -92,10 +85,7 @@ export default function MascotAvatar({ journeys, nodes }) {
     intervalRef.current = setInterval(() => {
       i++
       setDisplayed(d => ({ ...d, [msgId]: fullText.slice(0, i) }))
-      if (i >= fullText.length) {
-        clearInterval(intervalRef.current)
-        setTypingId(null)
-      }
+      if (i >= fullText.length) { clearInterval(intervalRef.current); setTypingId(null) }
     }, speed)
   }
 
@@ -110,7 +100,7 @@ export default function MascotAvatar({ journeys, nodes }) {
     setInput('')
     setLoading(true)
 
-    const sysPrompt = buildSystemPrompt(stats)
+    const sysPrompt  = buildSystemPrompt(stats)
     const apiHistory = updated
       .filter(m => m.id !== 'init')
       .map(m => ({ role: m.role, content: m.content }))
@@ -132,35 +122,72 @@ export default function MascotAvatar({ journeys, nodes }) {
   const onKey = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }
 
   return (
-    <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-30 flex flex-col items-end gap-2">
+    <div className="mb-6 fade-up">
+      {/* ── Mascot + speech bubble row ── */}
+      <div className="flex items-end gap-3">
+        {/* Mascot image */}
+        <div className="relative flex-shrink-0">
+          <img
+            src={mascot}
+            alt="Pal"
+            className="mascot-float w-16 h-16 md:w-20 md:h-20 object-contain select-none drop-shadow-lg"
+          />
+          {!open && (
+            <span className="absolute top-1 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-4 ring-emerald-400/20 animate-pulse" />
+          )}
+        </div>
 
-      {/* ── Chat panel ── */}
+        {/* Speech bubble */}
+        <div className="flex-1 relative min-w-0">
+          {/* Triangle tail pointing left toward mascot */}
+          <div
+            className="absolute -left-[9px] bottom-4 w-0 h-0 pointer-events-none"
+            style={{
+              borderTop: '7px solid transparent',
+              borderBottom: '7px solid transparent',
+              borderRight: '9px solid rgba(255,255,255,0.08)',
+            }}
+          />
+          <div
+            className="absolute -left-[8px] bottom-4 w-0 h-0 pointer-events-none"
+            style={{
+              borderTop: '7px solid transparent',
+              borderBottom: '7px solid transparent',
+              borderRight: '8px solid rgba(255,255,255,0.04)',
+            }}
+          />
+
+          <button
+            onClick={() => setOpen(o => !o)}
+            className="w-full text-left px-4 py-3 rounded-2xl rounded-tl-sm transition-all active:scale-[0.99]"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+            }}
+          >
+            <p className="text-gray-300 text-sm leading-relaxed line-clamp-2">{openingLine}</p>
+            <p className="text-emerald-500 text-xs mt-1.5 font-medium">
+              {open ? 'Close chat ↑' : 'Chat with Pal →'}
+            </p>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Inline chat panel (expands below when open) ── */}
       {open && (
         <div
-          className="w-72 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+          className="mt-3 rounded-2xl overflow-hidden flex flex-col"
           style={{
             background: 'var(--bg-elevated)',
             border: '1px solid var(--border-md)',
-            maxHeight: 380,
           }}
         >
-          {/* Header */}
-          <div
-            className="flex items-center gap-2.5 px-4 py-3 flex-shrink-0"
-            style={{ borderBottom: '1px solid var(--border)', background: 'rgba(16,185,129,0.06)' }}
-          >
-            <img src={mascot} alt="Pal" className="w-7 h-7 object-contain" />
-            <div className="flex-1">
-              <p className="text-white text-sm font-semibold leading-none">Pal</p>
-              <p className="text-emerald-500 text-[10px] mt-0.5">Your project buddy ✨</p>
-            </div>
-            <button onClick={() => setOpen(false)} className="text-gray-600 hover:text-white transition-colors p-0.5">
-              <X size={15} />
-            </button>
-          </div>
-
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+          <div
+            ref={scrollRef}
+            className="overflow-y-auto px-4 py-3 space-y-3"
+            style={{ minHeight: 180, maxHeight: 260 }}
+          >
             {messages.map(m => {
               const isUser   = m.role === 'user'
               const isTyping = typingId === m.id
@@ -171,7 +198,7 @@ export default function MascotAvatar({ journeys, nodes }) {
                     <img src={mascot} alt="" className="w-5 h-5 object-contain flex-shrink-0 mt-0.5 self-start" />
                   )}
                   <div
-                    className="max-w-[85%] px-3 py-2 rounded-2xl text-xs leading-relaxed"
+                    className="max-w-[85%] px-3 py-2 text-xs leading-relaxed"
                     style={{
                       background: isUser ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.06)',
                       border: `1px solid ${isUser ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.08)'}`,
@@ -194,7 +221,10 @@ export default function MascotAvatar({ journeys, nodes }) {
             {loading && messages[messages.length - 1]?.role === 'user' && (
               <div className="flex gap-2 items-center">
                 <img src={mascot} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
-                <div className="flex items-center gap-1 px-3 py-2 rounded-2xl" style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '4px 16px 16px 16px' }}>
+                <div
+                  className="flex items-center gap-1 px-3 py-2"
+                  style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '4px 16px 16px 16px' }}
+                >
                   <Loader2 size={11} className="animate-spin text-emerald-400" />
                   <span className="text-gray-500 text-xs ml-1">Thinking…</span>
                 </div>
@@ -203,7 +233,10 @@ export default function MascotAvatar({ journeys, nodes }) {
           </div>
 
           {/* Input */}
-          <div className="flex gap-2 px-3 py-2.5 flex-shrink-0" style={{ borderTop: '1px solid var(--border)' }}>
+          <div
+            className="flex gap-2 px-3 py-2.5 flex-shrink-0"
+            style={{ borderTop: '1px solid var(--border)' }}
+          >
             <input
               ref={inputRef}
               value={input}
@@ -226,34 +259,6 @@ export default function MascotAvatar({ journeys, nodes }) {
           </div>
         </div>
       )}
-
-      {/* ── Mascot button ── */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="relative flex items-end group"
-        aria-label="Chat with Pal"
-      >
-        {/* Speech bubble nudge when closed */}
-        {!open && (
-          <div
-            className="absolute bottom-full right-14 mb-1 px-3 py-2 rounded-2xl rounded-br-sm text-xs text-gray-200 whitespace-nowrap shadow-xl transition-all opacity-0 group-hover:opacity-100 pointer-events-none"
-            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-md)' }}
-          >
-            {openingLine.length > 40 ? openingLine.slice(0, 40) + '…' : openingLine}
-          </div>
-        )}
-
-        <img
-          src={mascot}
-          alt="Pal"
-          className="mascot-float w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-2xl select-none transition-transform group-hover:scale-110"
-        />
-
-        {/* Pulse ring when chat closed */}
-        {!open && (
-          <span className="absolute top-1 right-1 w-3 h-3 rounded-full bg-emerald-400 ring-4 ring-emerald-400/20 animate-pulse" />
-        )}
-      </button>
     </div>
   )
 }

@@ -142,6 +142,12 @@ function Sk({ className = '' }) {
 function DashboardSkeleton() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 md:px-8 md:py-8 pb-20 md:pb-8">
+      {/* Mascot */}
+      <div className="flex items-end gap-3 mb-6">
+        <Sk className="w-16 h-16 md:w-20 md:h-20 rounded-2xl flex-shrink-0" />
+        <Sk className="flex-1 h-16 rounded-2xl rounded-tl-sm" />
+      </div>
+
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div className="space-y-2">
@@ -283,6 +289,9 @@ export default function Dashboard() {
       <main className="md:ml-52 flex-1 overflow-y-auto">
         {loading ? <DashboardSkeleton /> : (
         <div className="max-w-6xl mx-auto px-4 py-6 md:px-8 md:py-8 pb-20 md:pb-8 fade-up">
+          {/* ── Mascot ── */}
+          <MascotAvatar journeys={journeys} nodes={nodes} />
+
           {/* ── Header ── */}
           <div className="flex items-start justify-between mb-8">
             <div>
@@ -631,7 +640,6 @@ export default function Dashboard() {
         )}
       </main>
 
-      <MascotAvatar journeys={journeys} nodes={nodes} />
     </div>
   );
 }
