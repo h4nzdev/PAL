@@ -70,7 +70,7 @@ function AppInit({ children }) {
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-base)' }}>
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-emerald-500/30 border-t-emerald-400 animate-spin" />
-          <p className="text-gray-500 text-sm">Loading JourneyPad…</p>
+          <p className="text-gray-500 text-sm">Loading PAL…</p>
         </div>
       </div>
     )
