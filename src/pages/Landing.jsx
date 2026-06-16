@@ -64,6 +64,7 @@ const steps = [
 export default function Landing() {
   const navigate = useNavigate()
   const [installPrompt, setInstallPrompt] = useState(null)
+  const [showInstallGuide, setShowInstallGuide] = useState(false)
 
   useEffect(() => {
     const handler = (e) => {
@@ -144,28 +145,18 @@ export default function Landing() {
             >
               Start for free →
             </button>
-            {installPrompt ? (
-              <button
-                onClick={handleInstall}
-                className="flex items-center gap-2 text-gray-300 hover:text-white px-8 py-3.5 rounded-xl text-sm font-medium transition-all hover:bg-white/5"
-                style={{ border: '1px solid rgba(255,255,255,0.1)' }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-                Install App
-              </button>
-            ) : (
-              <button
-                onClick={() => navigate('/login')}
-                className="text-gray-300 hover:text-white px-8 py-3.5 rounded-xl text-sm font-medium transition-all hover:bg-white/5"
-                style={{ border: '1px solid rgba(255,255,255,0.1)' }}
-              >
-                Sign in
-              </button>
-            )}
+            <button
+              onClick={installPrompt ? handleInstall : () => setShowInstallGuide(true)}
+              className="flex items-center gap-2 text-gray-300 hover:text-white px-8 py-3.5 rounded-xl text-sm font-medium transition-all hover:bg-white/5"
+              style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Install App
+            </button>
           </div>
 
           {/* Stats bar */}
@@ -314,6 +305,58 @@ export default function Landing() {
           <p className="text-gray-700 text-xs mt-5">No credit card required · Free forever</p>
         </div>
       </section>
+
+      {/* ── Install Guide Modal ── */}
+      {showInstallGuide && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }}
+          onClick={() => setShowInstallGuide(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl p-6"
+            style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-white font-semibold text-base">Install JourneyPad</h3>
+              <button onClick={() => setShowInstallGuide(false)} className="text-gray-600 hover:text-gray-400 transition-colors text-lg leading-none">✕</button>
+            </div>
+            <div className="space-y-5">
+              {[
+                {
+                  platform: 'Chrome / Edge (Desktop)',
+                  icon: '🖥️',
+                  steps: ['Open the app in Chrome or Edge', 'Click the install icon (⊕) in the address bar', 'Click "Install" in the prompt'],
+                },
+                {
+                  platform: 'Android (Chrome)',
+                  icon: '🤖',
+                  steps: ['Open the app in Chrome', 'Tap the menu (⋮) → "Add to Home screen"', 'Tap "Add" to confirm'],
+                },
+                {
+                  platform: 'iPhone / iPad (Safari)',
+                  icon: '🍎',
+                  steps: ['Open the app in Safari', 'Tap the Share button (□↑)', 'Tap "Add to Home Screen" → "Add"'],
+                },
+              ].map(({ platform, icon, steps }) => (
+                <div key={platform} className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <p className="text-white text-sm font-medium mb-3">{icon} {platform}</p>
+                  <ol className="space-y-1.5">
+                    {steps.map((s, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-xs text-gray-400">
+                        <span className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-emerald-400 font-semibold" style={{ background: 'rgba(16,185,129,0.1)', fontSize: 9 }}>{i + 1}</span>
+                        {s}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              ))}
+            </div>
+            <p className="text-gray-700 text-xs text-center mt-5">Works offline after install · No app store needed</p>
+          </div>
+        </div>
+      )}
 
       {/* ── Footer ── */}
       <footer className="px-6 lg:px-16 py-8" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>

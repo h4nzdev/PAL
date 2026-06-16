@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, CheckCircle2, Sun, Moon } from 'lucide-react'
+import { Eye, EyeOff, CheckCircle2, Sun, Moon, Wifi, WifiOff, RefreshCw } from 'lucide-react'
 import Sidebar from '../components/Layout/Sidebar'
 import useAuthStore from '../store/useAuthStore'
 import useThemeStore from '../store/useThemeStore'
+import useProjectStore from '../store/useProjectStore'
+import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import { toast } from 'sonner'
 
 export default function Settings() {
@@ -11,6 +13,24 @@ export default function Settings() {
   const { user, updateProfile, logout } = useAuthStore()
   const { theme, setTheme } = useThemeStore()
   const [form, setForm] = useState({ username: user?.username || '', designation: user?.designation || '' })
+  const isOnline = useOnlineStatus()
+  const pendingCount = useProjectStore(s => s.pendingCount)
+  const syncData = useProjectStore(s => s.syncData)
+  const [autoSync, setAutoSync] = useState(() => localStorage.getItem('pal-auto-sync') !== 'false')
+  const [syncing, setSyncing] = useState(false)
+
+  const handleAutoSyncToggle = (val) => {
+    setAutoSync(val)
+    localStorage.setItem('pal-auto-sync', String(val))
+  }
+
+  const handleSyncNow = async () => {
+    if (!isOnline) { toast.error('You are offline. Connect to sync.'); return }
+    setSyncing(true)
+    await syncData()
+    setSyncing(false)
+    toast.success('Synced with cloud.')
+  }
 
   // Groq API key (stored in localStorage only — never sent to server)
   const [groqKey,     setGroqKey]     = useState(() => localStorage.getItem('pal-groq-key') || '')
@@ -200,6 +220,60 @@ export default function Settings() {
                 <Sun size={15} /> Light
               </button>
             </div>
+          </div>
+
+          {/* Sync & Offline */}
+          <div className="rounded-2xl p-6 border border-white/8 space-y-4" style={{ background: 'rgba(255,255,255,0.03)' }}>
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-white font-semibold">Sync &amp; Offline</h2>
+                <p className="text-gray-500 text-xs mt-0.5">Local changes are saved instantly. Sync pushes them to the cloud.</p>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-full" style={isOnline
+                ? { background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.2)' }
+                : { background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+                {isOnline ? <Wifi size={11} /> : <WifiOff size={11} />}
+                {isOnline ? 'Online' : 'Offline'}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between py-3 border-t border-white/5">
+              <div>
+                <p className="text-gray-300 text-sm">Auto-sync when back online</p>
+                <p className="text-gray-600 text-xs mt-0.5">Automatically push offline changes when connection is restored</p>
+              </div>
+              <button
+                onClick={() => handleAutoSyncToggle(!autoSync)}
+                className="relative w-10 h-6 rounded-full transition-all flex-shrink-0"
+                style={{ background: autoSync ? 'rgba(16,185,129,0.8)' : 'rgba(255,255,255,0.1)' }}
+              >
+                <span
+                  className="absolute top-1 w-4 h-4 rounded-full bg-white transition-all"
+                  style={{ left: autoSync ? '22px' : '4px' }}
+                />
+              </button>
+            </div>
+
+            {pendingCount > 0 && (
+              <div className="flex items-center justify-between rounded-xl px-4 py-3" style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                <p className="text-amber-400 text-sm">
+                  <span className="font-semibold">{pendingCount}</span> change{pendingCount !== 1 ? 's' : ''} pending sync
+                </p>
+                <button
+                  onClick={handleSyncNow}
+                  disabled={syncing || !isOnline}
+                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
+                  style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.25)' }}
+                >
+                  <RefreshCw size={11} className={syncing ? 'animate-spin' : ''} />
+                  {syncing ? 'Syncing…' : 'Sync Now'}
+                </button>
+              </div>
+            )}
+
+            {pendingCount === 0 && isOnline && (
+              <p className="text-gray-700 text-xs">All changes are synced.</p>
+            )}
           </div>
 
           {/* Sign out */}

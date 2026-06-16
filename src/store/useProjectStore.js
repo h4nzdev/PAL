@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { JOURNEY_COLORS } from '../lib/colors'
 import { supabase } from '../supabaseClient'
+import { enqueue, getQueue, replayAll, clearQueue } from '../lib/syncQueue'
 
 // ── Column mappers ────────────────────────────────────────────────────────────
 
@@ -55,6 +56,7 @@ const useProjectStore = create(
       chatHasMore: {},  // { [chatId]: boolean }
 
       loading: false,
+      pendingCount: getQueue().length,
 
       // Record a joined journey and register in journey_members table
       async joinJourney(journeyId) {
@@ -164,6 +166,7 @@ const useProjectStore = create(
           id,
           name,
           color,
+          ownerId: userId,
           createdAt: new Date().toISOString(),
         };
         set((s) => ({
@@ -204,12 +207,22 @@ const useProjectStore = create(
             j.id === journeyId ? { ...j, ...updates } : j,
           ),
         }));
+        const entry = { table: 'journeys', op: 'update', data: updates, filter: { id: journeyId } }
+        if (!navigator.onLine) {
+          enqueue(entry)
+          set({ pendingCount: getQueue().length })
+          return
+        }
         supabase
           .from("journeys")
           .update(updates)
           .eq("id", journeyId)
           .then(({ error }) => {
-            if (error) console.error("journey update:", error);
+            if (error) {
+              console.error("journey update:", error)
+              enqueue(entry)
+              set({ pendingCount: getQueue().length })
+            }
           });
       },
 
@@ -403,19 +416,22 @@ const useProjectStore = create(
           },
         }));
 
+        const dbData = { id: node.id, journey_id: journeyId, parent_id: parentId, type, content, checked: false, sort_order: node.order }
+        const entry = { table: 'nodes', op: 'insert', data: dbData }
+        if (!navigator.onLine) {
+          enqueue(entry)
+          set({ pendingCount: getQueue().length })
+          return node
+        }
         supabase
           .from("nodes")
-          .insert({
-            id: node.id,
-            journey_id: journeyId,
-            parent_id: parentId,
-            type,
-            content,
-            checked: false,
-            sort_order: node.order,
-          })
+          .insert(dbData)
           .then(({ error }) => {
-            if (error) console.error("node insert:", error);
+            if (error) {
+              console.error("node insert:", error)
+              enqueue(entry)
+              set({ pendingCount: getQueue().length })
+            }
           });
 
         return node;
@@ -442,12 +458,22 @@ const useProjectStore = create(
         if ("attachments" in updates) dbUp.attachments = updates.attachments;
 
         if (Object.keys(dbUp).length > 0) {
+          const entry = { table: 'nodes', op: 'update', data: dbUp, filter: { id: nodeId } }
+          if (!navigator.onLine) {
+            enqueue(entry)
+            set({ pendingCount: getQueue().length })
+            return
+          }
           supabase
             .from("nodes")
             .update(dbUp)
             .eq("id", nodeId)
             .then(({ error }) => {
-              if (error) console.error("node update:", error);
+              if (error) {
+                console.error("node update:", error)
+                enqueue(entry)
+                set({ pendingCount: getQueue().length })
+              }
             });
         }
       },
@@ -470,12 +496,22 @@ const useProjectStore = create(
         }));
 
         // Cascade deletes handled by FK in DB; just delete the root
+        const entry = { table: 'nodes', op: 'delete', filter: { id: nodeId } }
+        if (!navigator.onLine) {
+          enqueue(entry)
+          set({ pendingCount: getQueue().length })
+          return
+        }
         supabase
           .from("nodes")
           .delete()
           .eq("id", nodeId)
           .then(({ error }) => {
-            if (error) console.error("node delete:", error);
+            if (error) {
+              console.error("node delete:", error)
+              enqueue(entry)
+              set({ pendingCount: getQueue().length })
+            }
           });
       },
 
@@ -710,8 +746,27 @@ const useProjectStore = create(
           },
         }));
       },
+      // ── Offline sync ──────────────────────────────────────────────────────
+
+      async syncData() {
+        if (getQueue().length === 0) return
+        try {
+          await replayAll()
+          set({ pendingCount: 0 })
+          await get().loadData()
+        } catch (err) {
+          console.error('Sync failed:', err)
+        }
+      },
     }),
-    { name: "pal-projects" },
+    {
+      name: "pal-projects",
+      partialize: (state) => {
+        // eslint-disable-next-line no-unused-vars
+        const { pendingCount, loading, ...rest } = state
+        return rest
+      },
+    },
   ),
 );
 

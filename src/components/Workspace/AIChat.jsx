@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { Bot, Send, Zap, FolderPlus, Layers } from 'lucide-react'
+import { Bot, Send, Zap, FolderPlus, Layers, WifiOff } from 'lucide-react'
 import { fetchGroqResponse, fetchGroqFollowUp } from '../../lib/groqClient'
 import Markdown from '../../lib/Markdown'
 import useProjectStore from '../../store/useProjectStore'
 import useAuthStore from '../../store/useAuthStore'
+import { useOnlineStatus } from '../../hooks/useOnlineStatus'
 
 const DAILY_LIMIT = 5
 
@@ -77,6 +78,7 @@ export default function AIChat({ journeyId, journeyName, nodes, hideHeader = fal
   const [animText,  setAnimText]  = useState(null)   // null = idle, string = revealing
   const [usedToday, setUsedToday] = useState(getUsedToday)
 
+  const isOnline  = useOnlineStatus()
   const remaining = DAILY_LIMIT - usedToday
   const atLimit   = remaining <= 0
   const busy      = fetching || animText !== null
@@ -283,7 +285,7 @@ Keep responses concise — 1 to 3 sentences.`
           <button
             key={qa}
             onClick={() => setInput(qa)}
-            disabled={busy || atLimit}
+            disabled={busy || atLimit || !isOnline}
             className="text-xs bg-white/5 hover:bg-white/10 disabled:opacity-30 text-gray-400 hover:text-white px-2.5 py-1 rounded-full transition-all flex items-center gap-1 flex-shrink-0 whitespace-nowrap"
           >
             <Zap size={10} /> {qa}
@@ -291,21 +293,31 @@ Keep responses concise — 1 to 3 sentences.`
         ))}
       </div>
 
+      {/* Offline notice */}
+      {!isOnline && (
+        <div className="flex items-center justify-center gap-2 px-4 py-2 border-t border-white/5 flex-shrink-0" style={{ background: 'rgba(239,68,68,0.05)' }}>
+          <WifiOff size={12} className="text-red-400 flex-shrink-0" />
+          <p className="text-xs text-red-400">You're offline — AI chat will resume when reconnected</p>
+        </div>
+      )}
+
       {/* Input row */}
       <div className="p-3 border-t border-white/5 flex gap-2 flex-shrink-0">
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && send()}
-          placeholder={atLimit
-            ? 'Daily limit reached — come back tomorrow'
-            : 'Ask anything about this journey…'}
-          disabled={busy || atLimit}
+          placeholder={!isOnline
+            ? 'Offline — AI unavailable'
+            : atLimit
+              ? 'Daily limit reached — come back tomorrow'
+              : 'Ask anything about this journey…'}
+          disabled={busy || atLimit || !isOnline}
           className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-emerald-500/50 disabled:opacity-40"
         />
         <button
           onClick={send}
-          disabled={busy || atLimit || !input.trim()}
+          disabled={busy || atLimit || !input.trim() || !isOnline}
           className="bg-emerald-500 hover:bg-emerald-400 text-white p-2 rounded-lg transition-all flex-shrink-0 disabled:opacity-40"
         >
           <Send size={14} />

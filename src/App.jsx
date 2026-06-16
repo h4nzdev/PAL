@@ -47,12 +47,23 @@ function AppInit({ children }) {
   const user      = useAuthStore(s => s.user)
   const authLoading = useAuthStore(s => s.loading)
   const loadData  = useProjectStore(s => s.loadData)
+  const syncData  = useProjectStore(s => s.syncData)
 
   useEffect(() => { init() }, [])
 
   useEffect(() => {
     if (user) loadData()
   }, [user?.id])
+
+  useEffect(() => {
+    const handleOnline = () => {
+      if (localStorage.getItem('pal-auto-sync') !== 'false') {
+        syncData()
+      }
+    }
+    window.addEventListener('online', handleOnline)
+    return () => window.removeEventListener('online', handleOnline)
+  }, [])
 
   if (authLoading) {
     return (
