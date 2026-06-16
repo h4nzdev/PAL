@@ -384,13 +384,10 @@ export default function JourneyChat() {
               )}
             </div>
 
-            {/* Input bar */}
+            {/* Input bar — pb-20 on mobile clears the fixed bottom nav (~60px) */}
             <div
-              className="px-4 md:px-6 py-3 md:py-4 flex-shrink-0 pb-safe"
-              style={{
-                borderTop: "1px solid var(--border)",
-                paddingBottom: "max(12px, env(safe-area-inset-bottom))",
-              }}
+              className="px-4 md:px-6 pt-3 md:pt-4 pb-20 md:pb-4 flex-shrink-0"
+              style={{ borderTop: "1px solid var(--border)" }}
             >
               <div className="flex gap-3 items-end">
                 <div className="flex-1">

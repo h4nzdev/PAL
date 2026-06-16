@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Copy, Check, Crown, Pencil, Eye, Upload, Trash2, Hash, UserPlus, Loader2, Plus } from 'lucide-react'
+import { ArrowLeft, Copy, Check, Crown, Pencil, Eye, Upload, Trash2, Hash, UserPlus, Loader2, Plus, ChevronDown } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 import { toast } from 'sonner'
 import Sidebar from '../components/Layout/Sidebar'
@@ -23,10 +23,10 @@ function RoleBadge({ role }) {
   const Icon = cfg.icon
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+      className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium flex-shrink-0"
       style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
     >
-      <Icon size={11} />
+      <Icon size={10} />
       {cfg.label}
     </span>
   )
@@ -34,18 +34,21 @@ function RoleBadge({ role }) {
 
 function RoleSelect({ value, onChange }) {
   return (
-    <select
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      className="text-xs px-2.5 py-1.5 rounded-lg focus:outline-none transition-all cursor-pointer"
-      style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: '#d1d5db' }}
-    >
-      {ASSIGNABLE_ROLES.map(r => (
-        <option key={r} value={r} style={{ background: '#0c1220' }}>
-          {ROLES[r].label}
-        </option>
-      ))}
-    </select>
+    <div className="relative flex-shrink-0">
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="appearance-none text-xs pl-2.5 pr-6 py-1.5 rounded-lg focus:outline-none transition-all cursor-pointer"
+        style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: '#d1d5db' }}
+      >
+        {ASSIGNABLE_ROLES.map(r => (
+          <option key={r} value={r} style={{ background: '#0c1220' }}>
+            {ROLES[r].label}
+          </option>
+        ))}
+      </select>
+      <ChevronDown size={11} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+    </div>
   )
 }
 
@@ -57,48 +60,43 @@ function MemberRow({ member, isOwnerView, currentUserId, journeyId, onRoleChange
 
   return (
     <div
-      className="flex items-center gap-2 md:gap-4 px-4 md:px-5 py-3 md:py-4 transition-all group"
+      className="flex items-center gap-3 px-4 py-3.5 transition-all group"
       style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
     >
       {/* Avatar */}
       <div
-        className="w-8 md:w-9 h-8 md:h-9 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-xs md:text-sm"
+        className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm"
         style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
       >
         {initials}
       </div>
 
-      {/* Info */}
+      {/* Name + joined date */}
       <div className="flex-1 min-w-0">
-        <p className="text-white text-sm md:text-base font-medium truncate">
-          {member.username}
-          {isCurrentUser && <span className="text-gray-600 text-xs ml-1 md:ml-2">(you)</span>}
-        </p>
-        <p className="text-gray-700 text-xs hidden sm:block">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <p className="text-white text-sm font-medium truncate">{member.username}</p>
+          {isCurrentUser && <span className="text-gray-600 text-xs">(you)</span>}
+        </div>
+        <p className="text-gray-700 text-xs mt-0.5">
           Joined {new Date(member.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
         </p>
       </div>
 
-      {/* Role */}
-      <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+      {/* Role + actions */}
+      <div className="flex items-center gap-1.5 flex-shrink-0">
         {isOwnerView && !isOwner ? (
-          <RoleSelect
-            value={member.role}
-            onChange={role => onRoleChange(member.userId, role)}
-          />
+          <>
+            <RoleSelect value={member.role} onChange={role => onRoleChange(member.userId, role)} />
+            <button
+              onClick={() => onRemove(member.userId, member.username)}
+              className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-700 hover:text-red-400 hover:bg-red-500/10 transition-all"
+              title="Remove member"
+            >
+              <Trash2 size={13} />
+            </button>
+          </>
         ) : (
           <RoleBadge role={member.role} />
-        )}
-
-        {/* Remove button — owner can remove non-owners; member can leave */}
-        {(isOwnerView && !isOwner) && (
-          <button
-            onClick={() => onRemove(member.userId, member.username)}
-            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-700 hover:text-red-400 hover:bg-red-500/10 transition-all"
-            title="Remove member"
-          >
-            <Trash2 size={13} />
-          </button>
         )}
       </div>
     </div>
@@ -116,13 +114,37 @@ function RoleCard({ role }) {
     viewer:   'Read-only access. Can view all content but make no changes.',
   }
   return (
-    <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+    <div className="flex items-start gap-3 p-3.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
       <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: cfg.bg }}>
         <Icon size={13} style={{ color: cfg.color }} />
       </div>
       <div>
-        <p className="text-white text-xs font-medium mb-0.5">{cfg.label}</p>
-        <p className="text-gray-600 text-xs leading-relaxed">{descriptions[role]}</p>
+        <p className="text-white text-xs font-semibold mb-0.5">{cfg.label}</p>
+        <p className="text-gray-500 text-xs leading-relaxed">{descriptions[role]}</p>
+      </div>
+    </div>
+  )
+}
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+function TeamSkeleton() {
+  return (
+    <div className="max-w-4xl mx-auto px-4 md:px-8 py-6 space-y-6 pb-28">
+      <div>
+        <div className="h-3 w-16 rounded-lg bg-white/6 animate-pulse mb-3" />
+        <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex items-center gap-3 px-4 py-3.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <div className="w-9 h-9 rounded-full bg-white/8 animate-pulse flex-shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-28 rounded-lg bg-white/8 animate-pulse" />
+                <div className="h-3 w-20 rounded-lg bg-white/5 animate-pulse" />
+              </div>
+              <div className="h-6 w-16 rounded-full bg-white/6 animate-pulse" />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -195,131 +217,141 @@ export default function JourneyTeam() {
     <div className="flex min-h-screen text-white" style={{ background: 'var(--bg-base)' }}>
       <Sidebar />
 
-      <main className="md:ml-52 flex-1 flex flex-col">
-        {/* Top bar */}
-        <div className="flex items-center gap-2 md:gap-4 px-4 md:px-8 py-4 md:py-5 flex-shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
+      <main className="md:ml-52 flex-1 flex flex-col min-h-0">
+
+        {/* ── Top bar ── */}
+        <div
+          className="flex items-center gap-3 px-4 md:px-8 flex-shrink-0"
+          style={{ borderBottom: '1px solid var(--border)', paddingTop: 'max(env(safe-area-inset-top, 0px), 16px)', paddingBottom: 16 }}
+        >
           <button
             onClick={() => navigate(`/journey/${journeyId}`)}
-            className="text-gray-500 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5 flex-shrink-0"
+            className="p-2 rounded-xl text-gray-500 hover:text-white hover:bg-white/5 transition-all flex-shrink-0 active:scale-95"
           >
-            <ArrowLeft size={17} />
+            <ArrowLeft size={16} />
           </button>
-          <div className="min-w-0 flex-1">
-            <p className="text-gray-600 text-xs mb-0.5 truncate">{journey.name}</p>
-            <h1 className="text-white font-bold text-lg md:text-xl">Team</h1>
+
+          <div className="flex-1 min-w-0">
+            <p className="text-gray-600 text-xs truncate leading-none mb-0.5">{journey.name}</p>
+            <h1 className="text-white font-bold text-lg leading-none">Team</h1>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs flex-shrink-0" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34d399' }}>
+
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs flex-shrink-0"
+            style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34d399' }}
+          >
             <UserPlus size={11} />
-            <span className="hidden sm:inline">{members.length} member{members.length !== 1 ? 's' : ''}</span>
-            <span className="sm:hidden">{members.length}</span>
+            <span>{members.length} member{members.length !== 1 ? 's' : ''}</span>
           </div>
         </div>
 
+        {/* ── Content ── */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto px-4 md:px-8 py-6 md:py-8 space-y-6 md:space-y-8 pb-24">
+          {loading ? <TeamSkeleton /> : (
+            <div className="max-w-4xl mx-auto px-4 md:px-8 py-5 md:py-8 space-y-5 md:space-y-8 pb-28 md:pb-10">
 
-            {/* ── Members list ── */}
-            <div>
-              <h2 className="text-gray-500 text-xs uppercase tracking-widest mb-3">Members</h2>
-              <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                {loading ? (
-                  <div className="flex items-center justify-center py-12 gap-3 text-gray-600">
-                    <Loader2 size={16} className="animate-spin" />
-                    <span className="text-sm">Syncing members…</span>
-                  </div>
-                ) : members.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-gray-600 text-sm">No members yet.</p>
-                    <p className="text-gray-700 text-xs mt-1">Share the invite code below or add a teammate by username.</p>
-                  </div>
-                ) : (
-                  members.map(m => (
-                    <MemberRow
-                      key={m.id}
-                      member={m}
-                      isOwnerView={isOwner}
-                      currentUserId={user?.id}
-                      journeyId={journeyId}
-                      onRoleChange={handleRoleChange}
-                      onRemove={handleRemove}
-                    />
-                  ))
-                )}
-
-                {/* Add member form — owner only */}
-                {isOwner && (
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2 px-3 md:px-4 py-3 md:py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                    <input
-                      value={addUsername}
-                      onChange={e => setAddUsername(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && handleAddMember()}
-                      placeholder="Add by username…"
-                      disabled={adding}
-                      className="flex-1 px-3 py-2 md:py-2.5 rounded-xl text-sm text-white placeholder:text-gray-700 focus:outline-none disabled:opacity-50"
-                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-                      onFocus={e => { e.target.style.borderColor = 'rgba(16,185,129,0.35)' }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.08)' }}
-                    />
-                    <button
-                      onClick={handleAddMember}
-                      disabled={!addUsername.trim() || adding}
-                      className="flex items-center justify-center gap-1.5 px-4 py-2 md:py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-30 flex-shrink-0 whitespace-nowrap"
-                      style={{ background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}
-                    >
-                      {adding ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
-                      <span className="hidden sm:inline">Add</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* ── Invite code ── */}
-            {isOwner && (
+              {/* ── Members list ── */}
               <div>
-                <h2 className="text-gray-500 text-xs uppercase tracking-widest mb-3">Invite Code</h2>
-                <div className="rounded-2xl p-5 space-y-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)' }}>
-                      <Hash size={14} className="text-emerald-400" />
+                <h2 className="text-gray-500 text-xs uppercase tracking-widest mb-3">Members</h2>
+                <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  {members.length === 0 ? (
+                    <div className="text-center py-10 px-6">
+                      <p className="text-gray-500 text-sm font-medium">No members yet</p>
+                      <p className="text-gray-700 text-xs mt-1">Share the invite code or add a teammate below.</p>
                     </div>
-                    <div>
-                      <p className="text-white text-sm font-medium mb-0.5">Share this code with your team</p>
-                      <p className="text-gray-600 text-xs">Teammates paste this code on the dashboard to join. New members start as Viewer — you can update their role here.</p>
-                    </div>
-                  </div>
+                  ) : (
+                    members.map(m => (
+                      <MemberRow
+                        key={m.id}
+                        member={m}
+                        isOwnerView={isOwner}
+                        currentUserId={user?.id}
+                        journeyId={journeyId}
+                        onRoleChange={handleRoleChange}
+                        onRemove={handleRemove}
+                      />
+                    ))
+                  )}
 
-                  <div className="flex items-center gap-2">
+                  {/* Add member — owner only */}
+                  {isOwner && (
                     <div
-                      className="flex-1 rounded-xl px-4 py-2.5 font-mono text-sm text-gray-300 select-all truncate"
-                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                      className="flex items-center gap-2 px-4 py-3"
+                      style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
                     >
-                      {journeyId}
+                      <input
+                        value={addUsername}
+                        onChange={e => setAddUsername(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleAddMember()}
+                        placeholder="Add teammate by username…"
+                        disabled={adding}
+                        className="flex-1 min-w-0 px-3 py-2.5 rounded-xl text-sm text-white placeholder:text-gray-700 focus:outline-none disabled:opacity-50 transition-all"
+                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                        onFocus={e => { e.target.style.borderColor = 'rgba(16,185,129,0.35)' }}
+                        onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.08)' }}
+                      />
+                      <button
+                        onClick={handleAddMember}
+                        disabled={!addUsername.trim() || adding}
+                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-30 flex-shrink-0 active:scale-95"
+                        style={{ background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}
+                      >
+                        {adding ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+                        Add
+                      </button>
                     </div>
-                    <button
-                      onClick={copyCode}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex-shrink-0"
-                      style={copied
-                        ? { background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.3)' }
-                        : { background: 'rgba(255,255,255,0.07)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)' }}
-                    >
-                      {copied ? <Check size={14} /> : <Copy size={14} />}
-                      {copied ? 'Copied!' : 'Copy'}
-                    </button>
-                  </div>
+                  )}
                 </div>
               </div>
-            )}
 
-            {/* ── Role guide ── */}
-            <div>
-              <h2 className="text-gray-500 text-xs uppercase tracking-widest mb-3">Role Permissions</h2>
-              <div className="space-y-2">
-                {ASSIGNABLE_ROLES.map(r => <RoleCard key={r} role={r} />)}
+              {/* ── Invite code ── */}
+              {isOwner && (
+                <div>
+                  <h2 className="text-gray-500 text-xs uppercase tracking-widest mb-3">Invite Code</h2>
+                  <div className="rounded-2xl p-4 md:p-5 space-y-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)' }}>
+                        <Hash size={14} className="text-emerald-400" />
+                      </div>
+                      <div>
+                        <p className="text-white text-sm font-medium mb-0.5">Share with your team</p>
+                        <p className="text-gray-600 text-xs leading-relaxed">Teammates paste this on the dashboard to join. New members start as Viewer.</p>
+                      </div>
+                    </div>
+
+                    {/* Code row — stacks on very small screens */}
+                    <div className="flex flex-col xs:flex-row gap-2">
+                      <div
+                        className="flex-1 rounded-xl px-3.5 py-2.5 font-mono text-xs md:text-sm text-gray-400 select-all overflow-hidden"
+                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', wordBreak: 'break-all' }}
+                      >
+                        {journeyId}
+                      </div>
+                      <button
+                        onClick={copyCode}
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex-shrink-0 active:scale-95"
+                        style={copied
+                          ? { background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.3)' }
+                          : { background: 'rgba(255,255,255,0.07)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)' }}
+                      >
+                        {copied ? <Check size={14} /> : <Copy size={14} />}
+                        {copied ? 'Copied!' : 'Copy'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Role guide ── */}
+              <div>
+                <h2 className="text-gray-500 text-xs uppercase tracking-widest mb-3">Role Permissions</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {ASSIGNABLE_ROLES.map(r => <RoleCard key={r} role={r} />)}
+                </div>
               </div>
-            </div>
 
-          </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
