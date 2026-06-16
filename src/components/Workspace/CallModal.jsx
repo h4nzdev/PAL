@@ -81,11 +81,11 @@ export default function CallModal({ onClose, taskTitle, taskId }) {
           className="flex items-center justify-between px-6 py-4 flex-shrink-0"
           style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
         >
-          <div className="min-w-0">
+          <div className="flex-1 min-w-0 mr-3">
             <p className="text-gray-500 text-xs mb-0.5">Task Call</p>
-            <h3 className="text-white font-semibold text-sm truncate max-w-[320px]">{taskTitle}</h3>
+            <h3 className="text-white font-semibold text-sm truncate">{taskTitle}</h3>
           </div>
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
             <span
               className="flex items-center gap-1.5 text-emerald-400 text-xs font-mono px-2.5 py-1 rounded-lg"
               style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)' }}
@@ -131,10 +131,10 @@ export default function CallModal({ onClose, taskTitle, taskId }) {
 
           {/* Local video PiP */}
           <div
-            className="absolute bottom-5 right-5 rounded-2xl overflow-hidden shadow-2xl"
+            className="absolute bottom-4 right-4 md:bottom-5 md:right-5 rounded-2xl overflow-hidden shadow-2xl"
             style={{
-              width: 196,
-              height: 130,
+              width: 'min(196px, 40vw)',
+              height: 'min(130px, 27vw)',
               background: '#0c1220',
               border: '1px solid rgba(255,255,255,0.12)',
             }}
@@ -174,8 +174,8 @@ export default function CallModal({ onClose, taskTitle, taskId }) {
 
         {/* Controls */}
         <div
-          className="flex items-center justify-center gap-4 py-5 flex-shrink-0"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+          className="flex items-center justify-center gap-3 md:gap-4 py-4 md:py-5 flex-shrink-0"
+          style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingBottom: 'max(20px, env(safe-area-inset-bottom, 20px))' }}
         >
           <button
             onClick={handleMute}

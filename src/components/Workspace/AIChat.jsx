@@ -302,7 +302,10 @@ Keep responses concise — 1 to 3 sentences.`
       )}
 
       {/* Input row */}
-      <div className="p-3 border-t border-white/5 flex gap-2 flex-shrink-0">
+      <div
+        className="px-3 pt-3 flex gap-2 flex-shrink-0"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}
+      >
         <input
           value={input}
           onChange={e => setInput(e.target.value)}

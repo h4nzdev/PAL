@@ -41,13 +41,13 @@ function NewSectionModal({ journeyId, onClose }) {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center px-4"
+        className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
         style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
         onClick={onClose}
       >
         {/* Card */}
         <div
-          className="w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+          className="w-full md:max-w-md rounded-t-3xl md:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           style={{ background: '#0d1525', border: '1px solid rgba(255,255,255,0.09)' }}
           onClick={e => e.stopPropagation()}
         >
@@ -110,8 +110,8 @@ function NewSectionModal({ journeyId, onClose }) {
 
           {/* Footer */}
           <div
-            className="flex items-center justify-end gap-3 px-6 py-4"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
+            className="flex items-center justify-end gap-3 px-6 pt-4"
+            style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}
           >
             <button
               onClick={onClose}
@@ -152,7 +152,7 @@ function SectionCard({ section, journeyId, role }) {
     <div className="group relative">
       <button
         onClick={() => navigate(`/journey/${journeyId}/section/${section.id}`)}
-        className="w-full text-left rounded-xl p-4 transition-all overflow-hidden"
+        className="w-full text-left rounded-xl p-4 transition-all overflow-hidden active:scale-[0.99] active:brightness-110 touch-manipulation"
         style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
         onMouseEnter={e => { e.currentTarget.style.borderColor = `${hex}40` }}
         onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}
@@ -188,7 +188,7 @@ function SectionCard({ section, journeyId, role }) {
       {canEdit(role) && (
         <button
           onClick={(e) => { e.stopPropagation(); deleteNode(journeyId, section.id) }}
-          className="absolute top-3 right-8 opacity-0 group-hover:opacity-100 text-gray-700 hover:text-red-400 transition-all p-1 rounded"
+          className="absolute top-3 right-8 opacity-30 md:opacity-0 group-hover:opacity-100 active:opacity-100 text-gray-700 hover:text-red-400 active:text-red-400 transition-all p-1.5 rounded-lg touch-manipulation"
         >
           <Trash2 size={12} />
         </button>
@@ -216,7 +216,7 @@ function RootTaskItem({ node, journeyId, onOpen, role }) {
 
   return (
     <div
-      className="group flex items-center gap-2.5 py-2 px-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer"
+      className="group flex items-center gap-2.5 py-2.5 px-2 rounded-xl hover:bg-white/5 active:bg-white/8 transition-all cursor-pointer min-h-[44px] touch-manipulation"
       onClick={() => onOpen(node)}
     >
       <button
@@ -288,11 +288,11 @@ export default function DocumentTree({ journeyId }) {
         )}
 
         {(canEdit(role) || canUpload(role)) && (
-          <div className="flex gap-5 pt-4 border-t border-white/5">
+          <div className="flex gap-2 pt-3 border-t border-white/5">
             {canEdit(role) && (
               <button
                 onClick={() => setSectionModal(true)}
-                className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-emerald-400 transition-colors"
+                className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-emerald-400 active:text-emerald-400 transition-colors px-3 py-2.5 rounded-xl hover:bg-emerald-500/8 active:bg-emerald-500/8 touch-manipulation"
               >
                 <Plus size={13} /> Add Section
               </button>
@@ -300,7 +300,7 @@ export default function DocumentTree({ journeyId }) {
             {canUpload(role) && (
               <button
                 onClick={() => addNode(journeyId, null, 'task', 'New task')}
-                className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-300 transition-colors"
+                className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-300 active:text-gray-300 transition-colors px-3 py-2.5 rounded-xl hover:bg-white/5 active:bg-white/5 touch-manipulation"
               >
                 <Plus size={13} /> Quick Task
               </button>

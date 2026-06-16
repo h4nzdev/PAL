@@ -775,19 +775,22 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
         onClick={onClose}
       />
 
-      {/* Drawer */}
+      {/* Drawer — full-screen on mobile, 520px side-panel on desktop */}
       <div
-        className="fixed right-0 top-0 h-full z-50 flex flex-col shadow-2xl"
+        className="fixed inset-0 md:inset-auto md:right-0 md:top-0 md:h-full z-50 flex flex-col shadow-2xl w-full md:w-[520px]"
         style={{
-          width: 520,
           background: "#0c1220",
           borderLeft: "1px solid rgba(255,255,255,0.08)",
         }}
       >
         {/* ── Header ── */}
         <div
-          className="px-5 py-4 flex-shrink-0"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+          className="px-4 md:px-5 flex-shrink-0"
+          style={{
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+            paddingTop: "max(14px, env(safe-area-inset-top, 14px))",
+            paddingBottom: 14,
+          }}
         >
           <div className="flex items-start gap-3">
             <button
@@ -821,13 +824,13 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
               ) : (
                 <h2
                   onClick={() => editable && setEditingTitle(true)}
-                  className={`font-semibold text-lg leading-snug ${node.checked ? "line-through text-gray-500" : "text-white"} ${editable ? "cursor-text hover:text-emerald-400 transition-colors" : "cursor-default"}`}
+                  className={`font-semibold text-base md:text-lg leading-snug ${node.checked ? "line-through text-gray-500" : "text-white"} ${editable ? "cursor-text hover:text-emerald-400 transition-colors" : "cursor-default"}`}
                   title={editable ? "Click to rename" : undefined}
                 >
                   {node.content}
                 </h2>
               )}
-              <p className="text-gray-700 text-[11px] mt-0.5">
+              <p className="hidden md:block text-gray-700 text-[11px] mt-0.5">
                 Click title to rename · Esc to close
               </p>
             </div>
@@ -841,7 +844,7 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
           </div>
 
           {/* Meta row */}
-          <div className="flex gap-2 mt-3 ml-8">
+          <div className="flex gap-2 mt-3 ml-6 md:ml-8">
             <div
               className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 flex-1"
               style={{
@@ -903,7 +906,7 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
               }`}
             >
               <Icon size={11} />
-              {label}
+              <span className="hidden sm:inline">{label}</span>
               {key === "files" && attachCount > 0 && (
                 <span
                   className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
@@ -1016,8 +1019,11 @@ export default function TaskDrawer({ node, journeyId, journeyName, onClose }) {
 
         {/* ── Footer ── */}
         <div
-          className="px-5 py-3 flex items-center justify-between flex-shrink-0"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+          className="px-4 md:px-5 py-3 flex items-center justify-between flex-shrink-0"
+          style={{
+            borderTop: "1px solid rgba(255,255,255,0.06)",
+            paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))",
+          }}
         >
           <span className="text-gray-700 text-[11px] font-mono">
             #{node.id.slice(0, 8)}
