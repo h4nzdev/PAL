@@ -92,8 +92,9 @@ function AttachmentBlock({ attachments = [], onAdd, onRemove, onPreview }) {
                 alt={att.name}
                 className="w-full h-full object-cover"
               />
+              {/* Desktop: hover overlay with all actions */}
               <div
-                className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all"
+                className="hidden md:flex absolute inset-0 items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all"
                 style={{ background: "rgba(0,0,0,0.65)" }}
               >
                 <button
@@ -119,14 +120,28 @@ function AttachmentBlock({ attachments = [], onAdd, onRemove, onPreview }) {
                   </button>
                 )}
               </div>
+
+              {/* Filename + action buttons bar (always visible) */}
               <div
-                className="absolute bottom-0 left-0 right-0 px-2 py-1.5"
-                style={{
-                  background:
-                    "linear-gradient(to top, rgba(0,0,0,0.8), transparent)",
-                }}
+                className="absolute bottom-0 left-0 right-0 px-2 py-1.5 flex items-center gap-1.5"
+                style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85), transparent)" }}
               >
-                <p className="text-white text-[10px] truncate">{att.name}</p>
+                <p className="text-white text-[10px] truncate flex-1">{att.name}</p>
+                {/* Mobile-only quick actions */}
+                <button
+                  onClick={() => onPreview?.(att)}
+                  className="md:hidden p-1 rounded-md bg-white/20 text-white flex-shrink-0 active:bg-white/35 touch-manipulation"
+                >
+                  <Eye size={11} />
+                </button>
+                {onRemove && (
+                  <button
+                    onClick={() => onRemove(att.id)}
+                    className="md:hidden p-1 rounded-md bg-red-500/25 text-red-300 flex-shrink-0 active:bg-red-500/40 touch-manipulation"
+                  >
+                    <Trash2 size={11} />
+                  </button>
+                )}
               </div>
             </div>
           ))}

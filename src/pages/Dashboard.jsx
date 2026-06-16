@@ -136,68 +136,75 @@ function QuickActionCard({ icon: Icon, label, sub, color, onClick }) {
 }
 
 function Sk({ className = '' }) {
-  return <div className={`animate-pulse rounded-xl bg-white/6 ${className}`} />
+  return <div className={`animate-pulse rounded-xl bg-white/10 ${className}`} />
 }
 
 function DashboardSkeleton() {
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 md:px-8 md:py-8 pb-20 md:pb-8">
-      {/* Mascot */}
-      <div className="flex items-end gap-3 mb-6">
-        <Sk className="w-16 h-16 md:w-20 md:h-20 rounded-2xl flex-shrink-0" />
-        <Sk className="flex-1 h-16 rounded-2xl rounded-tl-sm" />
+    <div className="max-w-6xl mx-auto px-4 py-6 md:px-8 md:py-8 pb-24 md:pb-8">
+      {/* Mascot row */}
+      <div className="flex items-end gap-3 mb-8">
+        <Sk className="w-16 h-16 md:w-20 md:h-20 rounded-3xl flex-shrink-0" style={{ borderRadius: 20 }} />
+        <div
+          className="flex-1 rounded-2xl px-4 py-3 space-y-2"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px 16px 16px 4px' }}
+        >
+          <Sk className="h-4 w-4/5 rounded-lg" />
+          <Sk className="h-4 w-2/3 rounded-lg" />
+          <Sk className="h-3 w-24 rounded-lg" />
+        </div>
       </div>
 
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
-        <div className="space-y-2">
-          <Sk className="h-3 w-24" />
-          <Sk className="h-7 w-52" />
-          <Sk className="h-3 w-64" />
+        <div className="space-y-2.5">
+          <Sk className="h-2.5 w-28 rounded-md" />
+          <Sk className="h-7 w-48 rounded-lg" />
+          <Sk className="h-2.5 w-56 rounded-md" />
         </div>
-        <Sk className="h-10 w-32 rounded-xl" />
+        <Sk className="h-9 w-28 rounded-xl" />
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      {/* Stats 2×2 */}
+      <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="rounded-2xl p-5 border border-white/5" style={{ background: 'rgba(255,255,255,0.03)' }}>
-            <Sk className="w-9 h-9 rounded-xl mb-3" />
-            <Sk className="h-3 w-20 mb-2" />
-            <Sk className="h-8 w-12 mb-1.5" />
-            <Sk className="h-3 w-28" />
+          <div key={i} className="rounded-2xl p-4 md:p-5 border border-white/6" style={{ background: 'rgba(255,255,255,0.03)' }}>
+            <Sk className="w-8 h-8 rounded-xl mb-3" />
+            <Sk className="h-2.5 w-16 rounded-md mb-2.5" />
+            <Sk className="h-7 w-10 rounded-lg mb-1.5" />
+            <Sk className="h-2.5 w-24 rounded-md" />
           </div>
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <div className="mb-4">
-        <Sk className="h-3 w-24 mb-3" />
+      {/* Quick Actions 2×2 */}
+      <div className="mb-5">
+        <Sk className="h-2.5 w-24 rounded-md mb-3" />
         <div className="grid grid-cols-2 gap-3">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-3xl p-4 border border-white/5 flex items-center gap-3 min-h-[110px]" style={{ background: 'rgba(255,255,255,0.03)' }}>
-              <Sk className="w-11 h-11 rounded-2xl flex-shrink-0" />
+            <div key={i} className="rounded-3xl p-4 border border-white/6 flex items-center gap-3 min-h-[100px]" style={{ background: 'rgba(255,255,255,0.03)' }}>
+              <Sk className="w-10 h-10 rounded-2xl flex-shrink-0" />
               <div className="flex-1 space-y-2">
-                <Sk className="h-4 w-24" />
-                <Sk className="h-3 w-32" />
+                <Sk className="h-3.5 w-20 rounded-md" />
+                <Sk className="h-2.5 w-28 rounded-md" />
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Journeys */}
-      <div className="mb-4">
-        <Sk className="h-3 w-16 mb-4" />
-        <div className="grid grid-cols-2 gap-4">
+      {/* Journeys 2×2 */}
+      <div>
+        <Sk className="h-2.5 w-16 rounded-md mb-4" />
+        <div className="grid grid-cols-2 gap-3 md:gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-2xl border border-white/5 overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)' }}>
-              <div className="h-0.5 w-full animate-pulse" style={{ background: 'rgba(255,255,255,0.06)' }} />
-              <div className="p-5 space-y-3">
-                <Sk className="h-5 w-14 rounded-full" />
-                <Sk className="h-4 w-3/4" />
-                <Sk className="h-3 w-1/2" />
-                <Sk className="h-1 w-full rounded-full mt-2" />
+            <div key={i} className="rounded-2xl border border-white/6 overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)' }}>
+              <Sk className="h-0.5 w-full rounded-none" />
+              <div className="p-4 md:p-5 space-y-3">
+                <Sk className="h-5 w-12 rounded-full" />
+                <Sk className="h-3.5 w-4/5 rounded-md" />
+                <Sk className="h-2.5 w-1/2 rounded-md" />
+                <Sk className="h-1 w-full rounded-full mt-1" />
               </div>
             </div>
           ))}
