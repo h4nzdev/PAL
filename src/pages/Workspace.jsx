@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Bot, MessageCircle, Users, Loader2, X } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
+import { COLOR_HEX } from '../lib/colors'
 import Sidebar from '../components/Layout/Sidebar'
 import DocumentTree from '../components/Workspace/DocumentTree'
 import AIChat from '../components/Workspace/AIChat'
@@ -85,17 +86,16 @@ function JoinJourneyGate({ id, navigate }) {
 export default function Workspace() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [chatOpen, setChatOpen] = useState(true)
+  const [chatOpen, setChatOpen] = useState(false)
 
   const journey      = useProjectStore(useShallow(s => s.journeys.find(j => j.id === id)))
   const nodes        = useProjectStore(useShallow(s => s.nodes[id] || []))
   const { updateJourney } = useProjectStore()
 
-  const progress = (() => {
-    const tasks = nodes.filter(n => n.type === 'task')
-    if (!tasks.length) return 0
-    return Math.round(tasks.filter(t => t.checked).length / tasks.length * 100)
-  })()
+  const totalTasks = nodes.filter(n => n.type === 'task').length
+  const doneTasks  = nodes.filter(n => n.type === 'task' && n.checked).length
+  const progress   = totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0
+  const accentHex  = COLOR_HEX[journey?.color] || COLOR_HEX.emerald
 
   if (!journey) {
     return <JoinJourneyGate id={id} onJoined={() => window.location.reload()} navigate={navigate} />
@@ -108,65 +108,96 @@ export default function Workspace() {
     >
       <Sidebar />
       <div className="md:ml-52 flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
+        {/* ── Top bar ── */}
         <div className="flex-shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
+
           {/* Title row */}
-          <div className="flex items-center justify-between px-3 md:px-6 py-3 md:py-4">
-            <div className="flex items-center gap-2 md:gap-3 min-w-0">
-              <EditableTitle
-                value={journey.name}
-                onSave={(val) => updateJourney(id, { name: val })}
-                className="text-white font-semibold text-base md:text-lg hover:text-emerald-400 transition-colors truncate"
-                inputClassName="text-white font-semibold text-base md:text-lg"
-                showIcon
-              />
+          <div className="flex items-center justify-between px-3 md:px-6 py-3 md:py-4 gap-2">
+
+            {/* Left: color dot + editable title + task stats (mobile) */}
+            <div className="flex items-start md:items-center gap-2 md:gap-3 min-w-0">
+              {/* Journey color dot — mobile only */}
               <span
-                className="text-xs text-emerald-400 px-2 md:px-2.5 py-0.5 md:py-1 rounded-full flex-shrink-0 whitespace-nowrap"
-                style={{
-                  background: "rgba(16,185,129,0.12)",
-                  border: "1px solid rgba(16,185,129,0.2)",
-                }}
-              >
-                {progress}% done
-              </span>
+                className="md:hidden mt-[3px] w-2.5 h-2.5 rounded-full flex-shrink-0"
+                style={{ background: accentHex }}
+              />
+              <div className="min-w-0">
+                <EditableTitle
+                  value={journey.name}
+                  onSave={(val) => updateJourney(id, { name: val })}
+                  className="text-white font-semibold text-base md:text-lg hover:text-emerald-400 transition-colors truncate"
+                  inputClassName="text-white font-semibold text-base md:text-lg"
+                  showIcon
+                />
+                {/* Task count — mobile only */}
+                {totalTasks > 0 && (
+                  <p className="md:hidden text-[11px] text-gray-600 mt-0.5 leading-none">
+                    {doneTasks} of {totalTasks} tasks done
+                  </p>
+                )}
+              </div>
             </div>
 
-            {/* Desktop nav buttons */}
-            <div className="hidden md:flex items-center gap-2">
-              <button
-                onClick={() => navigate(`/journey/${id}/team`)}
-                className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg transition-all"
-                style={{ background: "rgba(255,255,255,0.05)", color: "#9ca3af" }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = "#d1d5db" }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = "#9ca3af" }}
+            {/* Right side */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Progress badge */}
+              <span
+                className="text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap"
+                style={{
+                  background: `${accentHex}1a`,
+                  border: `1px solid ${accentHex}33`,
+                  color: accentHex,
+                }}
               >
-                <Users size={14} /> Team
-              </button>
-              <button
-                onClick={() => navigate(`/journey/${id}/chat`)}
-                className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg transition-all"
-                style={{ background: "rgba(255,255,255,0.05)", color: "#9ca3af" }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = "#d1d5db" }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = "#9ca3af" }}
-              >
-                <MessageCircle size={14} /> Chat
-              </button>
-              <button
-                onClick={() => setChatOpen((o) => !o)}
-                className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg transition-all"
-                style={
-                  chatOpen
-                    ? { background: "rgba(16,185,129,0.12)", color: "#34d399", border: "1px solid rgba(16,185,129,0.2)" }
-                    : { background: "rgba(255,255,255,0.05)", color: "#9ca3af", border: "1px solid transparent" }
-                }
-              >
-                <Bot size={14} /> AI Co-Pilot
-              </button>
+                {progress}%
+                <span className="hidden md:inline"> done</span>
+              </span>
+
+              {/* Desktop nav buttons */}
+              <div className="hidden md:flex items-center gap-1.5">
+                <button
+                  onClick={() => navigate(`/journey/${id}/team`)}
+                  className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg transition-all"
+                  style={{ background: "rgba(255,255,255,0.05)", color: "#9ca3af" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = "#d1d5db" }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = "#9ca3af" }}
+                >
+                  <Users size={14} /> Team
+                </button>
+                <button
+                  onClick={() => navigate(`/journey/${id}/chat`)}
+                  className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg transition-all"
+                  style={{ background: "rgba(255,255,255,0.05)", color: "#9ca3af" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = "#d1d5db" }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = "#9ca3af" }}
+                >
+                  <MessageCircle size={14} /> Chat
+                </button>
+                <button
+                  onClick={() => setChatOpen((o) => !o)}
+                  className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg transition-all"
+                  style={
+                    chatOpen
+                      ? { background: "rgba(16,185,129,0.12)", color: "#34d399", border: "1px solid rgba(16,185,129,0.2)" }
+                      : { background: "rgba(255,255,255,0.05)", color: "#9ca3af", border: "1px solid transparent" }
+                  }
+                >
+                  <Bot size={14} /> AI Co-Pilot
+                </button>
+              </div>
             </div>
           </div>
 
+          {/* Mobile progress bar */}
+          <div className="md:hidden mx-3 mb-1 h-[3px] rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${progress}%`, background: accentHex, opacity: 0.75 }}
+            />
+          </div>
+
           {/* Mobile tab bar */}
-          <div className="flex md:hidden items-center gap-1.5 px-3 pb-3">
+          <div className="flex md:hidden items-center gap-1.5 px-3 py-2.5">
             <button
               onClick={() => navigate(`/journey/${id}/team`)}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
@@ -183,21 +214,25 @@ export default function Workspace() {
             </button>
             <button
               onClick={() => setChatOpen((o) => !o)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-95"
               style={
                 chatOpen
-                  ? { background: "rgba(16,185,129,0.12)", color: "#34d399", border: "1px solid rgba(16,185,129,0.2)" }
-                  : { background: "rgba(255,255,255,0.05)", color: "#9ca3af" }
+                  ? { background: `${accentHex}1a`, color: accentHex, border: `1px solid ${accentHex}33` }
+                  : { background: "rgba(255,255,255,0.05)", color: "#9ca3af", border: "1px solid transparent" }
               }
             >
-              <Bot size={13} /> AI Co-Pilot
+              <Bot size={13} />
+              AI Co-Pilot
+              {chatOpen && (
+                <span className="w-1.5 h-1.5 rounded-full ml-0.5" style={{ background: accentHex }} />
+              )}
             </button>
           </div>
         </div>
 
-        {/* Body */}
+        {/* ── Body ── */}
         <div className="flex flex-1 overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-3 md:px-6 pt-3 md:pt-6 pb-24 md:pb-6 min-w-0">
+          <div className="flex-1 overflow-y-auto px-3 md:px-6 pt-3 md:pt-5 pb-24 md:pb-6 min-w-0">
             <DocumentTree journeyId={id} />
           </div>
 
@@ -218,22 +253,32 @@ export default function Workspace() {
           {chatOpen && (
             <div
               className="md:hidden fixed inset-0 z-50 flex flex-col"
-              style={{ background: "var(--bg-base)" }}
+              style={{ background: "var(--bg-base)", animation: "slideUpFade 0.22s cubic-bezier(0.32,0.72,0,1)" }}
             >
+              <style>{`@keyframes slideUpFade{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
+
+              {/* Overlay header */}
               <div
-                className="flex items-center gap-3 px-4 py-3.5 flex-shrink-0"
-                style={{ borderBottom: "1px solid var(--border)" }}
+                className="flex items-center gap-3 px-4 flex-shrink-0"
+                style={{ borderBottom: "1px solid var(--border)", paddingTop: "env(safe-area-inset-top, 12px)", paddingBottom: 14 }}
               >
                 <button
                   onClick={() => setChatOpen(false)}
-                  className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                  className="p-1.5 rounded-xl transition-colors flex-shrink-0"
+                  style={{ background: "rgba(255,255,255,0.06)", color: "#9ca3af" }}
                 >
-                  <X size={18} />
+                  <X size={16} />
                 </button>
-                <Bot size={15} className="text-emerald-400" />
-                <span className="text-white text-sm font-semibold">AI Co-Pilot</span>
-                <span className="ml-auto text-xs text-gray-600 bg-white/5 px-2 py-0.5 rounded-full">Groq</span>
+                {/* Journey color + name context */}
+                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: accentHex }} />
+                <span className="text-gray-500 text-xs truncate flex-1">{journey.name}</span>
+                {/* AI label */}
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <Bot size={14} className="text-emerald-400" />
+                  <span className="text-white text-sm font-semibold">AI Co-Pilot</span>
+                </div>
               </div>
+
               <div className="flex-1 overflow-hidden">
                 <AIChat journeyId={id} journeyName={journey.name} nodes={nodes} hideHeader />
               </div>

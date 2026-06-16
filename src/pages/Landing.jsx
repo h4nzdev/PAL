@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '../assets/logo.png'
 import hero from '../assets/hero.png'
@@ -46,7 +47,7 @@ const steps = [
   {
     num: '01',
     title: 'Create a Journey',
-    desc: 'Give your project a name. JourneyPad instantly creates your workspace with an AI co-pilot standing by.',
+    desc: 'Give your project a name. PAL instantly creates your workspace with an AI co-pilot standing by.',
   },
   {
     num: '02',
@@ -62,13 +63,30 @@ const steps = [
 
 export default function Landing() {
   const navigate = useNavigate()
+  const [installPrompt, setInstallPrompt] = useState(null)
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault()
+      setInstallPrompt(e)
+    }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  const handleInstall = async () => {
+    if (!installPrompt) return
+    installPrompt.prompt()
+    await installPrompt.userChoice
+    setInstallPrompt(null)
+  }
 
   return (
     <div className="min-h-screen text-white overflow-x-hidden" style={{ background: '#030712' }}>
 
       {/* ── Navbar ── */}
       <nav className="sticky top-0 z-40 flex items-center justify-between px-6 lg:px-16 py-4" style={{ background: 'rgba(3,7,18,0.85)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <img src={logo} alt="JourneyPad" className="h-7 w-auto" />
+        <img src={logo} alt="PAL" className="h-7 w-auto" />
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate('/login')}
@@ -114,7 +132,7 @@ export default function Landing() {
               organized.
             </h1>
             <p className="text-gray-400 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
-              JourneyPad is a collaborative workspace that turns messy project plans into clean visual roadmaps — with an AI co-pilot and real-time team chat built right in.
+              PAL is a collaborative workspace that turns messy project plans into clean visual roadmaps — with an AI co-pilot and real-time team chat built right in.
             </p>
           </div>
 
@@ -126,13 +144,28 @@ export default function Landing() {
             >
               Start for free →
             </button>
-            <button
-              onClick={() => navigate('/login')}
-              className="text-gray-300 hover:text-white px-8 py-3.5 rounded-xl text-sm font-medium transition-all hover:bg-white/5"
-              style={{ border: '1px solid rgba(255,255,255,0.1)' }}
-            >
-              Sign in
-            </button>
+            {installPrompt ? (
+              <button
+                onClick={handleInstall}
+                className="flex items-center gap-2 text-gray-300 hover:text-white px-8 py-3.5 rounded-xl text-sm font-medium transition-all hover:bg-white/5"
+                style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Install App
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate('/login')}
+                className="text-gray-300 hover:text-white px-8 py-3.5 rounded-xl text-sm font-medium transition-all hover:bg-white/5"
+                style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                Sign in
+              </button>
+            )}
           </div>
 
           {/* Stats bar */}
@@ -163,7 +196,7 @@ export default function Landing() {
                 </div>
                 <div className="w-14" />
               </div>
-              <img src={hero} alt="JourneyPad workspace preview" className="w-full block" />
+              <img src={hero} alt="PAL workspace preview" className="w-full block" />
             </div>
           </div>
         </div>
@@ -197,7 +230,7 @@ export default function Landing() {
         <div className="text-center mb-16">
           <p className="text-emerald-500 text-xs font-semibold uppercase tracking-widest mb-3">Features</p>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Everything your team needs</h2>
-          <p className="text-gray-500 max-w-xl mx-auto">From planning to shipping, JourneyPad keeps your whole project in one place — tasks, chat, AI, and progress all unified.</p>
+          <p className="text-gray-500 max-w-xl mx-auto">From planning to shipping, PAL keeps your whole project in one place — tasks, chat, AI, and progress all unified.</p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 stagger">
           {features.map(f => (
@@ -285,7 +318,7 @@ export default function Landing() {
       {/* ── Footer ── */}
       <footer className="px-6 lg:px-16 py-8" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <img src={logo} alt="JourneyPad" className="h-5 w-auto opacity-40" />
+          <img src={logo} alt="PAL" className="h-5 w-auto opacity-40" />
           <p className="text-gray-700 text-xs text-center">
             Built with React 19, Supabase, Groq AI · Deployed on Vercel
           </p>
