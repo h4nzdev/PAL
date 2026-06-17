@@ -239,7 +239,6 @@ export default function Dashboard() {
   )
   const [search, setSearch] = useState('')
   const [joinCode, setJoinCode] = useState('')
-  const [joinOpen, setJoinOpen] = useState(false)
   const [showAllActivity, setShowAllActivity] = useState(false)
 
   const allTasks      = useMemo(() => Object.values(nodes).flat(), [nodes])
@@ -303,25 +302,29 @@ export default function Dashboard() {
 
           {/* ── Header ── */}
           <div className="mb-8">
-            <p className="text-gray-600 text-xs tracking-wide mb-2">{todayLabel}</p>
-            <div className="flex items-center gap-3 mb-4">
-              {streak > 0 && <StreakBadge streak={streak} />}
-              <button
-                onClick={() => navigate("/new-journey")}
-                className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:-translate-y-0.5 transform whitespace-nowrap"
-              >
-                <Plus size={15} /> New Journey
-              </button>
+            <p className="text-gray-600 text-xs tracking-wide mb-3">{todayLabel}</p>
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+              <div>
+                <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-2">
+                  {getGreeting()},{' '}
+                  <span className="text-emerald-400">{user?.username}</span>.
+                </h1>
+                <p className="text-gray-500 text-sm">
+                  {journeys.length === 0
+                    ? "Create your first journey to get started."
+                    : `You have ${journeys.length} active journey${journeys.length !== 1 ? "s" : ""} · ${totalCompleted} tasks done.`}
+                </p>
+              </div>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                {streak > 0 && <StreakBadge streak={streak} />}
+                <button
+                  onClick={() => navigate("/new-journey")}
+                  className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:-translate-y-0.5 transform whitespace-nowrap"
+                >
+                  <Plus size={15} /> New Journey
+                </button>
+              </div>
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-2">
-              {getGreeting()},{' '}
-              <span className="text-emerald-400">{user?.username}</span>.
-            </h1>
-            <p className="text-gray-500 text-sm">
-              {journeys.length === 0
-                ? "Create your first journey to get started."
-                : `You have ${journeys.length} active journey${journeys.length !== 1 ? "s" : ""} · ${totalCompleted} tasks done.`}
-            </p>
           </div>
 
           {/* ── Stats row ── */}
@@ -408,57 +411,48 @@ export default function Dashboard() {
 
           {/* ── Join by Code ── */}
           <div className="mb-8 fade-up">
-            {!joinOpen ? (
-              <button
-                onClick={() => setJoinOpen(true)}
-                className="flex items-center gap-2 text-xs text-gray-600 hover:text-gray-400 transition-colors px-1 py-1"
-              >
-                <Hash size={12} />
-                Have an invite code? Join a journey →
-              </button>
-            ) : (
-              <div
-                className="flex items-center gap-2 rounded-xl px-3 py-2.5 max-w-md"
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                }}
-              >
-                <Hash size={13} className="text-gray-600 flex-shrink-0" />
-                <input
-                  autoFocus
-                  value={joinCode}
-                  onChange={(e) => setJoinCode(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleJoin();
-                    if (e.key === "Escape") setJoinOpen(false);
-                  }}
-                  placeholder="Paste invite code…"
-                  className="flex-1 bg-transparent text-white text-sm placeholder:text-gray-700 focus:outline-none font-mono"
-                />
+            <div
+              className="rounded-2xl p-4"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(99,102,241,0.15)' }}>
+                  <Hash size={12} className="text-indigo-400" />
+                </div>
+                <p className="text-white text-xs font-semibold">Join via Invite Code</p>
+                <p className="text-gray-600 text-xs ml-1">· paste a code shared by a teammate</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div
+                  className="flex items-center gap-2 flex-1 rounded-xl px-3 py-2.5 min-w-0"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  <Hash size={12} className="text-gray-600 flex-shrink-0" />
+                  <input
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleJoin()
+                    }}
+                    placeholder="e.g. abc-1234-xyz"
+                    className="flex-1 bg-transparent text-white text-sm placeholder:text-gray-600 focus:outline-none font-mono min-w-0"
+                  />
+                  {joinCode && (
+                    <button onClick={() => setJoinCode('')} className="text-gray-600 hover:text-white flex-shrink-0">
+                      <X size={12} />
+                    </button>
+                  )}
+                </div>
                 <button
                   onClick={handleJoin}
                   disabled={!joinCode.trim()}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-30"
-                  style={{
-                    background: "rgba(16,185,129,0.15)",
-                    color: "#34d399",
-                    border: "1px solid rgba(16,185,129,0.25)",
-                  }}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all disabled:opacity-30 whitespace-nowrap flex-shrink-0"
+                  style={{ background: 'rgba(99,102,241,0.2)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.3)' }}
                 >
-                  <LogIn size={12} /> Join
-                </button>
-                <button
-                  onClick={() => {
-                    setJoinOpen(false);
-                    setJoinCode("");
-                  }}
-                  className="text-gray-700 hover:text-gray-400 p-1 transition-colors"
-                >
-                  <X size={14} />
+                  <LogIn size={12} /> Join Journey
                 </button>
               </div>
-            )}
+            </div>
           </div>
 
           {/* ── Journeys ── */}
