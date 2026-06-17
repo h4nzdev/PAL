@@ -300,27 +300,28 @@ export default function Dashboard() {
           <MascotAvatar journeys={journeys} nodes={nodes} />
 
           {/* ── Header ── */}
-          <div className="flex items-start justify-between mb-8">
-            <div>
-              <p className="text-gray-600 text-xs mb-1">{todayLabel}</p>
-              <h1 className="text-2xl font-bold text-white">
-                {getGreeting()}, {user?.username}.
-              </h1>
-              <p className="text-gray-500 text-sm mt-1">
-                {journeys.length === 0
-                  ? "Create your first journey to get started."
-                  : `You have ${journeys.length} active journey${journeys.length !== 1 ? "s" : ""} · ${totalCompleted} tasks done.`}
-              </p>
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-gray-600 text-xs tracking-wide">{todayLabel}</p>
+              <div className="flex items-center gap-3">
+                {streak > 0 && <StreakBadge streak={streak} />}
+                <button
+                  onClick={() => navigate("/new-journey")}
+                  className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:-translate-y-0.5 transform"
+                >
+                  <Plus size={15} /> New Journey
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-3 flex-shrink-0">
-              {streak > 0 && <StreakBadge streak={streak} />}
-              <button
-                onClick={() => navigate("/new-journey")}
-                className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:-translate-y-0.5 transform"
-              >
-                <Plus size={16} /> New Journey
-              </button>
-            </div>
+            <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-2">
+              {getGreeting()},{' '}
+              <span className="text-emerald-400">{user?.username}</span>.
+            </h1>
+            <p className="text-gray-500 text-sm">
+              {journeys.length === 0
+                ? "Create your first journey to get started."
+                : `You have ${journeys.length} active journey${journeys.length !== 1 ? "s" : ""} · ${totalCompleted} tasks done.`}
+            </p>
           </div>
 
           {/* ── Stats row ── */}
