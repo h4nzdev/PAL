@@ -12,6 +12,7 @@ import useProjectStore from '../store/useProjectStore'
 import useAuthStore from '../store/useAuthStore'
 import { COLOR_HEX, COLOR_CLASSES } from '../lib/colors'
 import MascotAvatar from '../components/Dashboard/MascotAvatar'
+import mascotLoad from '../assets/mascot-load.png'
 
 function getGreeting() {
   const h = new Date().getHours()
@@ -144,7 +145,7 @@ function DashboardSkeleton() {
     <div className="max-w-6xl mx-auto px-4 py-6 md:px-8 md:py-8 pb-24 md:pb-8">
       {/* Mascot row */}
       <div className="flex items-end gap-3 mb-8">
-        <Sk className="w-16 h-16 md:w-20 md:h-20 rounded-3xl flex-shrink-0" style={{ borderRadius: 20 }} />
+        <img src={mascotLoad} alt="Loading" className="w-16 h-16 md:w-20 md:h-20 object-contain flex-shrink-0 mascot-float drop-shadow-lg" />
         <div
           className="flex-1 rounded-2xl px-4 py-3 space-y-2"
           style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px 16px 16px 4px' }}
@@ -239,6 +240,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState('')
   const [joinCode, setJoinCode] = useState('')
   const [joinOpen, setJoinOpen] = useState(false)
+  const [showAllActivity, setShowAllActivity] = useState(false)
 
   const allTasks      = useMemo(() => Object.values(nodes).flat(), [nodes])
   const totalTasks    = allTasks.filter(n => n.type === 'task').length
@@ -612,17 +614,27 @@ export default function Dashboard() {
           {/* ── Activity feed ── */}
           {activities.length > 0 && (
             <div className="mt-10 fade-up" ref={activityRef}>
-              <h2 className="text-gray-500 text-xs uppercase tracking-widest mb-4">
-                Recent Activity
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-gray-500 text-xs uppercase tracking-widest">
+                  Recent Activity
+                </h2>
+                {activities.length > 5 && (
+                  <button
+                    onClick={() => setShowAllActivity(v => !v)}
+                    className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
+                  >
+                    {showAllActivity ? 'Show less' : `See all ${activities.length}`}
+                  </button>
+                )}
+              </div>
               <div
                 className="rounded-2xl overflow-hidden border border-white/5"
                 style={{ background: "rgba(255,255,255,0.02)" }}
               >
-                {activities.slice(0, 10).map((a, i) => (
+                {(showAllActivity ? activities : activities.slice(0, 5)).map((a, i, arr) => (
                   <div
                     key={a.id}
-                    className={`px-5 py-3.5 flex items-center gap-3 ${i < Math.min(activities.length, 10) - 1 ? "border-b border-white/5" : ""}`}
+                    className={`px-5 py-3.5 flex items-center gap-3 ${i < arr.length - 1 ? "border-b border-white/5" : ""}`}
                   >
                     <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
                       <span className="text-emerald-400 text-xs font-semibold">

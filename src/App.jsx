@@ -5,6 +5,7 @@ import useProjectStore from './store/useProjectStore'
 import useThemeStore from './store/useThemeStore'
 import { Toaster } from 'sonner'
 import PWAPrompt from './components/UI/PWAPrompt'
+import mascotLoad from './assets/mascot-load.png'
 import Landing from './pages/Landing'
 import Auth from './pages/Auth'
 import Dashboard from './pages/Dashboard'
@@ -68,8 +69,17 @@ function AppInit({ children }) {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-base)' }}>
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded-full border-2 border-emerald-500/30 border-t-emerald-400 animate-spin" />
+        <div className="flex flex-col items-center gap-5">
+          <img src={mascotLoad} alt="Loading" className="w-36 h-36 object-contain mascot-float drop-shadow-xl" />
+          <div className="flex items-center gap-1.5">
+            {[0, 150, 300].map(delay => (
+              <div
+                key={delay}
+                className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce"
+                style={{ animationDelay: `${delay}ms` }}
+              />
+            ))}
+          </div>
           <p className="text-gray-500 text-sm">Loading PAL…</p>
         </div>
       </div>
