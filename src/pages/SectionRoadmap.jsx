@@ -250,7 +250,7 @@ export default function SectionRoadmap() {
 
       <main className="md:ml-52 flex-1 flex flex-col min-h-screen">
         {/* Top bar */}
-        <div className="flex items-center gap-4 px-8 py-5 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="flex items-center gap-3 md:gap-4 px-4 md:px-8 py-4 md:py-5 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
           <button
             onClick={() => navigate(`/journey/${journeyId}`)}
             className="text-gray-500 hover:text-white transition-colors flex-shrink-0 p-1 rounded-lg hover:bg-white/5"
@@ -288,7 +288,7 @@ export default function SectionRoadmap() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-8 py-8">
+        <div className="flex-1 overflow-y-auto px-4 md:px-8 pt-5 md:pt-8 pb-28 md:pb-8">
           {tasks.length === 0 ? (
             <div className="text-center py-20">
               <div className="w-14 h-14 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center mx-auto mb-4">
