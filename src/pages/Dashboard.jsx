@@ -303,17 +303,15 @@ export default function Dashboard() {
 
           {/* ── Header ── */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-gray-600 text-xs tracking-wide">{todayLabel}</p>
-              <div className="flex items-center gap-3">
-                {streak > 0 && <StreakBadge streak={streak} />}
-                <button
-                  onClick={() => navigate("/new-journey")}
-                  className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:-translate-y-0.5 transform"
-                >
-                  <Plus size={15} /> New Journey
-                </button>
-              </div>
+            <p className="text-gray-600 text-xs tracking-wide mb-2">{todayLabel}</p>
+            <div className="flex items-center gap-3 mb-4">
+              {streak > 0 && <StreakBadge streak={streak} />}
+              <button
+                onClick={() => navigate("/new-journey")}
+                className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:-translate-y-0.5 transform whitespace-nowrap"
+              >
+                <Plus size={15} /> New Journey
+              </button>
             </div>
             <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-2">
               {getGreeting()},{' '}
