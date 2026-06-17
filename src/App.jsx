@@ -1,11 +1,13 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import useAuthStore from './store/useAuthStore'
 import useProjectStore from './store/useProjectStore'
 import useThemeStore from './store/useThemeStore'
 import { Toaster } from 'sonner'
 import PWAPrompt from './components/UI/PWAPrompt'
 import mascotLoad from './assets/mascot-load.png'
+import AdminPanel from './pages/AdminPanel'
+import { reportMetrics } from './lib/clientMetrics'
 import Landing from './pages/Landing'
 import Auth from './pages/Auth'
 import Dashboard from './pages/Dashboard'
@@ -37,9 +39,19 @@ function GuestGuard({ children }) {
   return user ? <Navigate to="/dashboard" replace /> : children
 }
 
+function AdminGuard({ children }) {
+  const user    = useAuthStore(s => s.user)
+  const isAdmin = useAuthStore(s => s.isAdmin)
+  if (!user)    return <Navigate to="/login"    replace />
+  if (!isAdmin) return <Navigate to="/dashboard" replace />
+  return children
+}
+
 function AuthedBottomNav() {
-  const user = useAuthStore(s => s.user)
-  return user ? <BottomNav /> : null
+  const user     = useAuthStore(s => s.user)
+  const location = useLocation()
+  if (!user || location.pathname.startsWith('/admin')) return null
+  return <BottomNav />
 }
 
 // Initialises auth session + loads project data whenever the user changes
@@ -54,6 +66,10 @@ function AppInit({ children }) {
 
   useEffect(() => {
     if (user) loadData()
+  }, [user?.id])
+
+  useEffect(() => {
+    if (user?.id) reportMetrics(user.id)
   }, [user?.id])
 
   useEffect(() => {
@@ -119,6 +135,7 @@ export default function App() {
           <Route path="/journey/:id/team" element={<Guard><JourneyTeam /></Guard>} />
           <Route path="/calendar"  element={<Guard><Calendar /></Guard>} />
           <Route path="/settings"  element={<Guard><Settings /></Guard>} />
+          <Route path="/admin"     element={<AdminGuard><AdminPanel /></AdminGuard>} />
           <Route path="*"          element={<Navigate to="/" replace />} />
         </Routes>
       </AppInit>

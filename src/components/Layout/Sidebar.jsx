@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Calendar, Settings, Plus, LogOut, MessageCircle, Users, ChevronDown, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, Calendar, Settings, Plus, LogOut, MessageCircle, Users, ChevronDown, ChevronRight, ShieldCheck } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 import useProjectStore from '../../store/useProjectStore'
 import useAuthStore from '../../store/useAuthStore'
@@ -18,6 +18,7 @@ export default function Sidebar() {
   const location = useLocation()
   const journeys = useProjectStore(useShallow(s => s.journeys))
   const { user, logout } = useAuthStore()
+  const isAdmin  = useAuthStore(s => s.isAdmin)
 
   // Track which journeys are expanded in the sidebar
   const [expanded, setExpanded] = useState({})
@@ -73,6 +74,21 @@ export default function Sidebar() {
           <Plus size={15} />
           New Journey
         </button>
+
+        {/* Admin link — only visible to admin accounts */}
+        {isAdmin && (
+          <button
+            onClick={() => navigate('/admin')}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all mt-1 ${
+              isActive('/admin')
+                ? 'bg-amber-500/15 text-amber-400 font-medium'
+                : 'text-gray-500 hover:text-amber-400 hover:bg-amber-500/10'
+            }`}
+          >
+            <ShieldCheck size={15} />
+            Admin
+          </button>
+        )}
 
         {/* Journey list */}
         {journeys.length > 0 && (

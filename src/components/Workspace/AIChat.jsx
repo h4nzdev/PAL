@@ -5,8 +5,8 @@ import Markdown from '../../lib/Markdown'
 import useProjectStore from '../../store/useProjectStore'
 import useAuthStore from '../../store/useAuthStore'
 import { useOnlineStatus } from '../../hooks/useOnlineStatus'
-
-const DAILY_LIMIT = 5
+import { supabase } from '../../supabaseClient'
+import { AI_DAILY_LIMIT as DAILY_LIMIT } from '../../lib/constants'
 
 // ── Usage helpers ─────────────────────────────────────────────────────────────
 
@@ -127,6 +127,14 @@ Keep responses concise — 1 to 3 sentences.`
     setMessages(m => [...m, { id: crypto.randomUUID(), role: 'user', content: userText, action: null }])
     setInput('')
     setUsedToday(bumpUsage())
+
+    // Server-side usage tracking (fire-and-forget)
+    if (user?.id) {
+      supabase.rpc('increment_ai_usage', {
+        p_user_id: user.id,
+        p_date:    new Date().toISOString().split('T')[0],
+      }).then(({ error }) => { if (error) console.error('ai_usage sync:', error) })
+    }
 
     const apiMessages = [
       { role: 'system', content: buildSystemPrompt() },
