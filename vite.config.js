@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "logo.png", "robots.txt"],
       manifest: {
-        name: "JourneyPad",
-        short_name: "JourneyPad",
+        name: "PAL",
+        short_name: "PAL",
         description: "Collaborative project planning with an AI co-pilot.",
         theme_color: "#030712",
         background_color: "#030712",
